@@ -1,65 +1,754 @@
-import Image from "next/image";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { LoginButton } from "@/components/auth/login-button";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Sparkles,
+  Leaf,
+  Heart,
+  Box,
+  MapPin,
+} from "lucide-react";
 
-export default function Home() {
+// Batik Kawung ornament — inline SVG, pure geometric
+function KawungOrnament({ opacity = 0.06 }: { opacity?: number }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <svg
+      viewBox="0 0 200 200"
+      className="absolute pointer-events-none select-none"
+      aria-hidden="true"
+    >
+      {Array.from({ length: 5 }).map((_, row) =>
+        Array.from({ length: 5 }).map((_, col) => {
+          const cx = col * 40 + 20;
+          const cy = row * 40 + 20;
+          return (
+            <g key={`${row}-${col}`}>
+              <ellipse cx={cx} cy={cy - 10} rx="8" ry="12" fill="none" stroke="#f5c451" strokeWidth="0.8" opacity={opacity * 2} />
+              <ellipse cx={cx + 10} cy={cy} rx="12" ry="8" fill="none" stroke="#f5c451" strokeWidth="0.8" opacity={opacity * 2} />
+              <ellipse cx={cx} cy={cy + 10} rx="8" ry="12" fill="none" stroke="#f5c451" strokeWidth="0.8" opacity={opacity * 2} />
+              <ellipse cx={cx - 10} cy={cy} rx="12" ry="8" fill="none" stroke="#f5c451" strokeWidth="0.8" opacity={opacity * 2} />
+              <circle cx={cx} cy={cy} r="3" fill="none" stroke="#f5c451" strokeWidth="0.6" opacity={opacity} />
+            </g>
+          );
+        })
+      )}
+    </svg>
+  );
+}
+
+// Mega mendung cloud pattern — top right decoration
+function MegaMendungCorner() {
+  return (
+    <svg
+      viewBox="0 0 320 320"
+      className="absolute top-0 right-0 w-64 md:w-96 pointer-events-none select-none"
+      aria-hidden="true"
+    >
+      <g opacity="0.07">
+        {/* Layered cloud arcs - mega mendung style */}
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <path
+            key={i}
+            d={`M ${280 - i * 22} 0 Q ${320 - i * 15} ${60 + i * 18}, ${280 - i * 10} ${120 + i * 22} Q ${300 - i * 8} ${180 + i * 16}, ${260 - i * 12} ${240 + i * 10}`}
+            fill="none"
+            stroke="#f5c451"
+            strokeWidth={1.5 - i * 0.15}
+            strokeLinecap="round"
+          />
+        ))}
+        {[0, 1, 2, 3].map((i) => (
+          <ellipse
+            key={`c-${i}`}
+            cx={290 - i * 18}
+            cy={30 + i * 40}
+            rx={20 + i * 8}
+            ry={14 + i * 5}
+            fill="none"
+            stroke="#f5c451"
+            strokeWidth="0.8"
+          />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+// Parang diagonal pattern for section divider
+function ParangDivider() {
+  return (
+    <div className="w-full overflow-hidden h-6 opacity-10" aria-hidden="true">
+      <svg viewBox="0 0 400 24" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <path
+            key={i}
+            d={`M ${i * 20} 24 L ${i * 20 + 12} 0 L ${i * 20 + 20} 24`}
+            fill="none"
+            stroke="#f5c451"
+            strokeWidth="0.8"
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+const crafts = [
+  {
+    name: "Batik",
+    origin: "Jawa",
+    desc: "Warisan UNESCO yang lahir dari tangan pengrajin Jawa. Setiap titik lilin menceritakan filosofi hidup.",
+    accent: "#f5c451",
+    icon: "🌿",
+    motif: "Kawung · Parang · Mega Mendung",
+  },
+  {
+    name: "Tenun",
+    origin: "Nusa Tenggara",
+    desc: "Benang demi benang, generasi demi generasi. Kain tenun NTT dan NTB menyimpan identitas suku yang kaya.",
+    accent: "#ffb59e",
+    icon: "🧵",
+    motif: "Ikat · Songke · Doyo",
+  },
+  {
+    name: "Songket",
+    origin: "Sumatra",
+    desc: "Emas dan perak teranyam dalam sutera — mahkota tekstil Melayu yang dipakai di momen paling bermakna.",
+    accent: "#d2c5b0",
+    icon: "✨",
+    motif: "Bunga Tabur · Pulir · Pucuk Rebung",
+  },
+];
+
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
+  return (
+    <div
+      className="min-h-screen flex flex-col selection:bg-[#f5c451] selection:text-[#3f2e00]"
+      style={{ backgroundColor: "#100e0c", color: "#e8e1dd", fontFamily: "Hanken Grotesk, sans-serif" }}
+    >
+
+      {/* ══ NAVIGATION ══ */}
+      <header
+        className="fixed top-0 w-full z-50 px-6 py-4"
+        style={{
+          background: "linear-gradient(to bottom, rgba(16,14,12,0.95) 0%, rgba(16,14,12,0.0) 100%)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div
+            className="text-2xl tracking-[0.2em]"
+            style={{ fontFamily: "Libre Caslon Text, serif", color: "#f5c451" }}
+          >
+            BUSARI
+          </div>
+          <nav className="hidden md:flex items-center gap-8">
+            {["Shop", "Warisan", "Artisan", "Try-On"].map((item, i) => (
+              <Link
+                key={item}
+                href="#"
+                className="text-xs font-semibold tracking-widest uppercase transition-colors hover:text-white"
+                style={{ color: i === 0 ? "#e8e1dd" : "#9b8f7c" }}
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <LoginButton />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ══ HERO ══ */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20">
+
+        {/* Mega mendung corner decoration */}
+        <MegaMendungCorner />
+
+        {/* Bottom-left kawung ornament */}
+        <div className="absolute bottom-0 left-0 w-48 h-48 md:w-64 md:h-64">
+          <KawungOrnament opacity={0.05} />
+        </div>
+
+        {/* Ambient gold glow */}
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at center, rgba(245,196,81,0.05) 0%, transparent 70%)",
+          }}
+          aria-hidden="true"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+
+        {/* Eyebrow */}
+        <div className="relative z-10 flex items-center gap-3 mb-8">
+          <div className="h-px w-10" style={{ backgroundColor: "#f5c451" }} />
+          <p
+            className="text-[10px] font-bold tracking-[0.3em] uppercase"
+            style={{ color: "#f5c451" }}
+          >
+            Curated UMKM Fashion
+          </p>
+          <div className="h-px w-10" style={{ backgroundColor: "#f5c451" }} />
+        </div>
+
+        {/* Headline */}
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
+          <h1
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] mb-4"
+            style={{
+              fontFamily: "Libre Caslon Text, serif",
+              fontWeight: 400,
+              letterSpacing: "-0.02em",
+              color: "#e8e1dd",
+            }}
+          >
+            Gaya Lokal,
+            <br />
+            <span style={{ color: "#f5c451" }}>Makna Nyata.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+          {/* Sub-tagline bilingual */}
+          <p
+            className="text-sm md:text-base mt-6 mb-2 max-w-lg mx-auto leading-relaxed"
+            style={{ color: "#d2c5b0" }}
+          >
+            Dari tangan pengrajin Nusantara ke lemarimu.
+          </p>
+          <p
+            className="text-xs mb-10 max-w-sm mx-auto"
+            style={{ color: "#9b8f7c", fontStyle: "italic", fontFamily: "Libre Caslon Text, serif" }}
+          >
+            "Every thread carries a story of heritage and pride."
+          </p>
+
+          {/* CTA row */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              className="group px-8 py-3.5 rounded-full text-sm font-semibold tracking-wide transition-all hover:brightness-110 active:scale-[0.97] flex items-center gap-2.5"
+              style={{ backgroundColor: "#f5c451", color: "#3f2e00" }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Jelajahi Koleksi
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+            <button
+              className="px-8 py-3.5 rounded-full text-sm font-semibold tracking-wide transition-all hover:bg-white/5"
+              style={{ border: "1px solid rgba(255,255,255,0.15)", color: "#d2c5b0" }}
             >
-              Learning
-            </a>{" "}
-            center.
+              Kenali UMKM Kami
+            </button>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
+          style={{ color: "#4e4635" }}
+        >
+          <div
+            className="w-px h-10 animate-pulse"
+            style={{ background: "linear-gradient(to bottom, transparent, #f5c451)" }}
+          />
+          <p className="text-[10px] tracking-widest uppercase" style={{ color: "#4e4635" }}>
+            Scroll
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* ══ PARANG DIVIDER ══ */}
+      <ParangDivider />
+
+      {/* ══ STAT STRIP ══ */}
+      <section style={{ backgroundColor: "#100e0c", borderTop: "1px solid rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { value: "12 kg", label: "CO₂ Dihemat / Bulan" },
+            { value: "8+", label: "Brand Artisan" },
+            { value: "100%", label: "Fair Trade" },
+            { value: "45%", label: "Bahan Daur Ulang" },
+          ].map((stat, i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <Leaf className="w-4 h-4 mb-1" style={{ color: "#f5c451" }} />
+              <span
+                className="text-3xl md:text-4xl"
+                style={{ fontFamily: "Libre Caslon Text, serif", color: "#e8e1dd" }}
+              >
+                {stat.value}
+              </span>
+              <span
+                className="text-[10px] font-semibold tracking-widest uppercase"
+                style={{ color: "#9b8f7c" }}
+              >
+                {stat.label}
+              </span>
+            </div>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* ══ WARISAN RAGAM BUDAYA ══ */}
+      <section className="max-w-7xl mx-auto px-6 py-24 w-full">
+        {/* Section header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
+          <div>
+            <p
+              className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3"
+              style={{ color: "#f5c451" }}
+            >
+              Warisan Ragam Budaya
+            </p>
+            <h2
+              className="text-3xl md:text-4xl"
+              style={{
+                fontFamily: "Libre Caslon Text, serif",
+                color: "#e8e1dd",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Dari Sabang sampai Merauke
+            </h2>
+          </div>
+          <p className="max-w-xs text-sm leading-relaxed md:text-right" style={{ color: "#9b8f7c" }}>
+            Tiga tradisi tekstil Indonesia yang masing-masing menyimpan filosofi hidup berbeda.
+          </p>
+        </div>
+
+        {/* Craft cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {crafts.map((craft, i) => (
+            <div
+              key={craft.name}
+              className="relative rounded-2xl p-7 overflow-hidden group cursor-pointer transition-all duration-300 hover:translate-y-[-4px]"
+              style={{
+                backgroundColor: "#1d1b19",
+                border: "1px solid rgba(255,255,255,0.07)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+              }}
+            >
+              {/* BG kawung mini */}
+              <div className="absolute bottom-0 right-0 w-32 h-32 opacity-[0.04]">
+                <KawungOrnament opacity={1} />
+              </div>
+
+              {/* Top accent line */}
+              <div
+                className="absolute top-0 left-7 right-7 h-px"
+                style={{ backgroundColor: craft.accent, opacity: 0.4 }}
+              />
+
+              <div className="relative z-10">
+                {/* Origin badge */}
+                <div className="flex items-center gap-1.5 mb-5">
+                  <MapPin className="w-3 h-3" style={{ color: craft.accent }} strokeWidth={1.5} />
+                  <span
+                    className="text-[10px] font-bold tracking-widest uppercase"
+                    style={{ color: craft.accent }}
+                  >
+                    {craft.origin}
+                  </span>
+                </div>
+
+                <h3
+                  className="text-3xl mb-3"
+                  style={{
+                    fontFamily: "Libre Caslon Text, serif",
+                    color: "#e8e1dd",
+                  }}
+                >
+                  {craft.name}
+                </h3>
+
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "#9b8f7c" }}>
+                  {craft.desc}
+                </p>
+
+                {/* Motif tags */}
+                <div className="flex flex-wrap gap-2">
+                  {craft.motif.split(" · ").map((m) => (
+                    <span
+                      key={m}
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.05)",
+                        color: "#9b8f7c",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ PARANG DIVIDER ══ */}
+      <ParangDivider />
+
+      {/* ══ UMKM STORY — TERRACOTTA CTA ══ */}
+      <section className="max-w-7xl mx-auto px-6 py-16 w-full">
+        <div className="grid md:grid-cols-2 gap-6">
+
+          {/* Quote card */}
+          <div
+            className="relative rounded-2xl p-8 md:p-10 overflow-hidden"
+            style={{
+              backgroundColor: "#7d2c11",
+              border: "1px solid rgba(255,181,158,0.15)",
+            }}
+          >
+            {/* Decorative quote mark */}
+            <div
+              className="absolute top-6 right-8 text-8xl leading-none pointer-events-none select-none"
+              style={{
+                fontFamily: "Libre Caslon Text, serif",
+                color: "rgba(255,181,158,0.12)",
+              }}
+              aria-hidden="true"
+            >
+              ❝
+            </div>
+
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center mb-6"
+              style={{ backgroundColor: "rgba(255,181,158,0.15)" }}
+            >
+              <Heart className="w-4 h-4" style={{ color: "#ffb59e" }} strokeWidth={1.8} />
+            </div>
+
+            <blockquote
+              className="text-xl md:text-2xl leading-relaxed mb-6 relative z-10"
+              style={{
+                fontFamily: "Libre Caslon Text, serif",
+                color: "#ffdbd0",
+                fontStyle: "italic",
+              }}
+            >
+              "Setiap pembelian adalah dukungan untuk keluarga pengrajin lokal."
+            </blockquote>
+
+            <p className="text-sm mb-8 leading-relaxed" style={{ color: "#ffb59e" }}>
+              Bergabunglah dengan ribuan pembeli yang memilih produk UMKM Indonesia — melestarikan budaya, menghidupi pengrajin, mengurangi fast fashion.
+            </p>
+
+            <div
+              className="inline-block rounded-xl overflow-hidden"
+              style={{ backgroundColor: "rgba(16,14,12,0.6)" }}
+            >
+              <LoginButton />
+            </div>
+          </div>
+
+          {/* What is UMKM card */}
+          <div
+            className="rounded-2xl p-8 md:p-10 relative overflow-hidden"
+            style={{
+              backgroundColor: "#221f1d",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            {/* Kawung bg */}
+            <div className="absolute inset-0 opacity-[0.03]">
+              <KawungOrnament opacity={1} />
+            </div>
+
+            <div
+              className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center mb-6"
+              style={{ backgroundColor: "rgba(245,196,81,0.1)" }}
+            >
+              <Sparkles className="w-4 h-4" style={{ color: "#f5c451" }} strokeWidth={1.8} />
+            </div>
+
+            <h3
+              className="relative z-10 text-2xl mb-4"
+              style={{ fontFamily: "Libre Caslon Text, serif", color: "#e8e1dd" }}
+            >
+              Apa itu UMKM?
+            </h3>
+            <p className="relative z-10 text-sm leading-loose mb-6" style={{ color: "#d2c5b0" }}>
+              <strong style={{ color: "#f5c451" }}>Usaha Mikro, Kecil, dan Menengah</strong> adalah tulang punggung ekonomi kreatif Indonesia. Mereka menjaga teknik tradisional yang diwariskan turun-temurun — dari membatik, menenun, hingga menyongket.
+            </p>
+
+            {/* Impact metrics */}
+            <div className="relative z-10 grid grid-cols-2 gap-4">
+              {[
+                { value: "64 juta", label: "unit UMKM di Indonesia" },
+                { value: "61%", label: "kontribusi terhadap PDB" },
+              ].map((m) => (
+                <div
+                  key={m.label}
+                  className="rounded-xl p-4"
+                  style={{
+                    backgroundColor: "rgba(245,196,81,0.06)",
+                    border: "1px solid rgba(245,196,81,0.12)",
+                  }}
+                >
+                  <p
+                    className="text-xl font-normal mb-1"
+                    style={{ fontFamily: "Libre Caslon Text, serif", color: "#f5c451" }}
+                  >
+                    {m.value}
+                  </p>
+                  <p className="text-[11px]" style={{ color: "#9b8f7c" }}>
+                    {m.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ CURATED COLLECTION ══ */}
+      <section className="max-w-7xl mx-auto px-6 py-16 w-full">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p
+              className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3"
+              style={{ color: "#f5c451" }}
+            >
+              Pilihan Kami
+            </p>
+            <h2
+              className="text-3xl md:text-4xl"
+              style={{ fontFamily: "Libre Caslon Text, serif", color: "#e8e1dd", letterSpacing: "-0.01em" }}
+            >
+              Koleksi Pilihan
+            </h2>
+          </div>
+          <Link
+            href="/shop"
+            className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors hover:text-white"
+            style={{ color: "#f5c451" }}
+          >
+            Lihat Semua <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[
+            { name: "Batik Tulis Ayodya", price: "Rp 1.850.000", badge: "TERLARIS", origin: "Solo, Jawa Tengah" },
+            { name: "Tenun Ikat NTT", price: "Rp 940.000", badge: null, origin: "Flores, NTT" },
+            { name: "Songket Palembang", price: "Rp 2.200.000", badge: "BARU", origin: "Palembang, Sumsel" },
+            { name: "Kebaya Modern Kutubaru", price: "Rp 780.000", badge: null, origin: "Yogyakarta, DIY" },
+          ].map((item) => (
+            <div
+              key={item.name}
+              className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:translate-y-[-4px]"
+              style={{
+                backgroundColor: "#1d1b19",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
+            >
+              {/* Image area */}
+              <div
+                className="relative flex flex-col justify-between p-4"
+                style={{
+                  aspectRatio: "3/4",
+                  backgroundColor: "#2c2927",
+                  background: "linear-gradient(135deg, #2c2927 0%, #221f1d 100%)",
+                }}
+              >
+                {item.badge && (
+                  <span
+                    className="self-start text-[9px] font-bold px-2.5 py-1 rounded-sm tracking-widest uppercase"
+                    style={{ backgroundColor: "#f5c451", color: "#3f2e00" }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+
+                {/* Placeholder with kawung */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-10" aria-hidden="true">
+                  <KawungOrnament opacity={0.5} />
+                </div>
+
+                <div className="self-end" />
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                <p className="text-[10px] mb-1.5" style={{ color: "#9b8f7c" }}>
+                  <MapPin className="w-2.5 h-2.5 inline mr-1" strokeWidth={1.5} />
+                  {item.origin}
+                </p>
+                <h4
+                  className="text-base mb-1"
+                  style={{ fontFamily: "Libre Caslon Text, serif", color: "#e8e1dd" }}
+                >
+                  {item.name}
+                </h4>
+                <p className="text-sm mb-4 font-semibold" style={{ color: "#f5c451" }}>
+                  {item.price}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase rounded-lg transition-colors hover:bg-white/5"
+                    style={{ border: "1px solid rgba(255,255,255,0.12)", color: "#d2c5b0" }}
+                  >
+                    Coba
+                  </button>
+                  <button
+                    className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase rounded-lg transition-all hover:brightness-110"
+                    style={{ backgroundColor: "#f5c451", color: "#3f2e00" }}
+                  >
+                    Tambah
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ PARANG DIVIDER ══ */}
+      <ParangDivider />
+
+      {/* ══ VIRTUAL TRY-ON BANNER ══ */}
+      <section className="max-w-7xl mx-auto px-6 py-16 w-full">
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            backgroundColor: "#1d1b19",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          {/* Background decoration */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            aria-hidden="true"
+            style={{
+              background:
+                "radial-gradient(ellipse at 80% 50%, rgba(245,196,81,0.05) 0%, transparent 60%)",
+            }}
+          />
+          <div className="absolute right-0 top-0 bottom-0 w-64 md:w-80">
+            <MegaMendungCorner />
+          </div>
+
+          <div className="relative z-10 px-8 md:px-14 py-14 md:py-16 max-w-xl">
+            <div className="flex items-center gap-2 mb-5">
+              <Box className="w-4 h-4" style={{ color: "#f5c451" }} strokeWidth={1.5} />
+              <span
+                className="text-[10px] font-bold tracking-[0.25em] uppercase"
+                style={{ color: "#f5c451" }}
+              >
+                Inovasi AR
+              </span>
+            </div>
+            <h2
+              className="text-3xl md:text-5xl leading-snug mb-4"
+              style={{
+                fontFamily: "Libre Caslon Text, serif",
+                color: "#e8e1dd",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Rasakan Kecocokannya,
+              <br />
+              <span style={{ color: "#f5c451" }}>Sebelum Membelinya.</span>
+            </h2>
+            <p className="text-sm leading-relaxed mb-8" style={{ color: "#9b8f7c" }}>
+              Teknologi Virtual Try-On kami memungkinkan kamu melihat bagaimana karya pengrajin Nusantara terlihat di tubuhmu — akurat, privat, dan tanpa repot.
+            </p>
+            <button
+              className="flex items-center gap-2.5 px-7 py-3 rounded-full text-sm font-semibold tracking-wide transition-all hover:bg-white/10"
+              style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#e8e1dd" }}
+            >
+              <Sparkles className="w-4 h-4" style={{ color: "#f5c451" }} strokeWidth={1.5} />
+              Mulai Virtual Try-On
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ FOOTER ══ */}
+      <footer
+        className="mt-8"
+        style={{
+          borderTop: "1px solid rgba(255,255,255,0.05)",
+          backgroundColor: "#100e0c",
+        }}
+      >
+        {/* Top footer */}
+        <div className="max-w-7xl mx-auto px-6 pt-14 pb-10 flex flex-col md:flex-row justify-between items-start gap-10">
+          <div className="max-w-xs">
+            <div
+              className="text-2xl tracking-[0.2em] mb-3"
+              style={{ fontFamily: "Libre Caslon Text, serif", color: "#f5c451" }}
+            >
+              BUSARI
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "#9b8f7c" }}>
+              Platform fashion artisanal Indonesia yang menghubungkan pengrajin UMKM dengan pembeli yang menghargai warisan budaya.
+            </p>
+            {/* Motif strip */}
+            <div className="mt-4 opacity-20" aria-hidden="true">
+              <ParangDivider />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-sm">
+            <div className="flex flex-col gap-3">
+              <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "#4e4635" }}>
+                Brand
+              </p>
+              {["Cerita Kami", "Pledge Keberlanjutan", "Artisan Impact"].map((l) => (
+                <Link key={l} href="#" className="transition-colors hover:text-white" style={{ color: "#9b8f7c" }}>
+                  {l}
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "#4e4635" }}>
+                Belanja
+              </p>
+              {["Semua Koleksi", "Batik", "Tenun", "Songket"].map((l) => (
+                <Link key={l} href="#" className="transition-colors hover:text-white" style={{ color: "#9b8f7c" }}>
+                  {l}
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "#4e4635" }}>
+                Bantuan
+              </p>
+              {["Pengiriman", "Pengembalian", "Ukuran"].map((l) => (
+                <Link key={l} href="#" className="transition-colors hover:text-white" style={{ color: "#9b8f7c" }}>
+                  {l}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom strip */}
+        <div
+          className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+        >
+          <p className="text-[11px]" style={{ color: "#4e4635" }}>
+            © 2024 BUSARI Artisanal Noir. Hak cipta dilindungi.
+          </p>
+          <p className="text-[11px]" style={{ color: "#4e4635" }}>
+            Dibuat dengan ❤ untuk pengrajin Indonesia
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
