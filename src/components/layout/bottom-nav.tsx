@@ -83,7 +83,9 @@ export function BottomNav({ profile }: BottomNavProps) {
         >
           {/* Nav items biasa */}
           {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/")
+           const isActive = href === "/dashboard" 
+  ? pathname === href 
+  : pathname === href || pathname.startsWith(href + "/")
             return (
               <Link
                 key={href}
@@ -241,7 +243,9 @@ export function BottomNav({ profile }: BottomNavProps) {
           }}
         >
           {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/")
+            const isActive = href === "/dashboard" 
+  ? pathname === href 
+  : pathname === href || pathname.startsWith(href + "/")
             return (
               <Link
                 key={href}
