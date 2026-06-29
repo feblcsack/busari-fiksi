@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { Pencil, Trash2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -19,6 +18,7 @@ interface ProductCardProps {
 export function ProductCard({ product, onEdit }: ProductCardProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -33,24 +33,27 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
     }
   }
 
+  const showImage = product.image_url && !imgError
+
   return (
     <>
       <Card className="overflow-hidden group hover:shadow-md transition-shadow duration-200">
         {/* Product Image */}
         <div className="aspect-square relative bg-slate-50">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
+          {showImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={product.image_url!}
               alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <Package className="w-12 h-12 text-slate-300" />
             </div>
           )}
+
           {/* Actions overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
           <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

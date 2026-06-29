@@ -59,20 +59,20 @@ export async function createProduct(formData: FormData) {
     const fileExt = imageFile.name.split(".").pop()
     const fileName = `${user.id}-${Date.now()}.${fileExt}`
 
-    // FIX: Convert File menjadi Buffer biar bisa dibaca di environment Server Node.js
+    // Convert File menjadi Buffer biar bisa dibaca di environment Server Node.js
     const buffer = Buffer.from(await imageFile.arrayBuffer())
 
-    // FIX BUCKET NAME: Ganti dari "products" ke "images"
+    // Upload ke bucket "images"
     const { error: uploadError } = await supabase.storage
       .from("images")
       .upload(fileName, buffer, {
-        contentType: imageFile.type, // FIX: Kasih tau Supabase MIME type gambarnya
+        contentType: imageFile.type,
         upsert: true,
       })
 
     if (uploadError) throw new Error(uploadError.message)
 
-    // FIX BUCKET NAME: Ganti dari "products" ke "images"
+    // Dapatkan URL publik dari bucket "images"
     const { data: urlData } = supabase.storage
       .from("images")
       .getPublicUrl(fileName)
@@ -90,7 +90,7 @@ export async function createProduct(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  // FIX: Revalidate secara 'layout' biar UI langsung update
+  // Revalidate secara 'layout' biar UI langsung update
   revalidatePath("/dashboard", "layout")
   return { success: true }
 }
@@ -114,20 +114,20 @@ export async function updateProduct(id: string, formData: FormData) {
     const fileExt = imageFile.name.split(".").pop()
     const fileName = `${user.id}-${Date.now()}.${fileExt}`
 
-    // FIX: Convert File menjadi Buffer
+    // Convert File menjadi Buffer
     const buffer = Buffer.from(await imageFile.arrayBuffer())
 
-    // FIX BUCKET NAME: Ganti dari "products" ke "images"
+    // Upload ke bucket "images"
     const { error: uploadError } = await supabase.storage
       .from("images")
       .upload(fileName, buffer, {
-        contentType: imageFile.type, // FIX: Tambahin contentType
+        contentType: imageFile.type,
         upsert: true,
       })
 
     if (uploadError) throw new Error(uploadError.message)
 
-    // FIX BUCKET NAME: Ganti dari "products" ke "images"
+    // Dapatkan URL publik dari bucket "images"
     const { data: urlData } = supabase.storage
       .from("images")
       .getPublicUrl(fileName)
@@ -143,7 +143,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
   if (error) throw new Error(error.message)
 
-  // FIX: Revalidate secara 'layout'
+  // Revalidate secara 'layout'
   revalidatePath("/dashboard", "layout")
   return { success: true }
 }
@@ -176,11 +176,11 @@ export async function deleteProduct(id: string) {
   if (product?.image_url) {
     const urlParts = product.image_url.split("/")
     const fileName = urlParts[urlParts.length - 1]
-    // FIX BUCKET NAME: Ganti dari "products" ke "images"
+    // Hapus dari bucket "images"
     await supabase.storage.from("images").remove([fileName])
   }
 
-  // FIX: Revalidate secara 'layout'
+  // Revalidate secara 'layout'
   revalidatePath("/dashboard", "layout")
   return { success: true }
 }

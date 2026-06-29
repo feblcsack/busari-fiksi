@@ -3,19 +3,19 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      // Ini yang udah lu tambahin kemarin buat Supabase
+      // Supabase Storage — wildcard subdomain biar ga perlu hardcode project ID
       {
         protocol: "https",
-        hostname: "nnjghpnkzmrupldznetr.supabase.co",
+        hostname: "*.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
       },
-      // INI YANG BARU: Buat izinin foto profil dari Google
+      // Google profile photos (OAuth)
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
         port: "",
-        pathname: "/**", // Izinin semua jalur gambar dari domain ini
+        pathname: "/**",
       },
     ],
   },
