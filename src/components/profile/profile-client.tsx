@@ -52,14 +52,14 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans text-[#e8e1dd]">
       {/* Avatar Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col items-center text-center">
+      <div className="bg-[#2A2621] rounded-[16px] border border-white/10 shadow-sm p-6 flex flex-col items-center text-center">
         <div
           className="relative cursor-pointer group mb-4"
           onClick={() => fileRef.current?.click()}
         >
-          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-indigo-50 flex items-center justify-center border-2 border-white shadow-md">
+          <div className="w-24 h-24 rounded-[16px] overflow-hidden bg-[#151311] flex items-center justify-center border border-[#4e4635] shadow-md">
             {avatarPreview ? (
               <Image
                 src={avatarPreview}
@@ -70,32 +70,32 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
                 unoptimized={avatarPreview.startsWith("blob:")}
               />
             ) : (
-              <span className="text-2xl font-bold text-indigo-600">{initials}</span>
+              <span className="text-2xl font-serif text-[#F5C451]">{initials}</span>
             )}
           </div>
-          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center group-hover:bg-indigo-700 transition-colors shadow-sm">
-            <Camera className="w-3.5 h-3.5 text-white" />
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#F5C451] border-2 border-[#2A2621] flex items-center justify-center group-hover:bg-[#ffe4af] transition-colors shadow-sm">
+            <Camera className="w-3.5 h-3.5 text-[#12100E]" />
           </div>
         </div>
 
-        <p className="font-semibold text-slate-900 text-sm">
+        <p className="font-semibold text-[#e8e1dd] text-sm">
           {profile?.full_name ?? "Pengguna"}
         </p>
-        <p className="text-slate-400 text-xs mt-0.5">{userEmail}</p>
+        <p className="text-[#d2c5b0] text-xs mt-0.5">{userEmail}</p>
 
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="mt-4 text-xs text-indigo-600 font-medium hover:text-indigo-700 hover:underline transition-colors"
+          className="mt-4 text-xs text-[#F5C451] font-medium hover:text-[#ffe4af] hover:underline transition-colors"
         >
           Ganti foto profil
         </button>
-        <p className="text-xs text-slate-400 mt-1">PNG, JPG · Maks. 5MB</p>
+        <p className="text-xs text-[#9b8f7c] mt-1">PNG, JPG · Maks. 5MB</p>
       </div>
 
       {/* Edit Form */}
-      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h2 className="font-semibold text-slate-900 text-sm mb-5">Informasi Akun</h2>
+      <div className="lg:col-span-2 bg-[#2A2621] rounded-[16px] border border-white/10 shadow-sm p-6">
+        <h2 className="font-serif text-2xl text-[#e8e1dd] mb-6">Informasi Akun</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Hidden avatar input */}
@@ -110,8 +110,8 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
 
           {/* Full Name */}
           <div>
-            <Label htmlFor="full_name" className="text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-slate-400" />
+            <Label htmlFor="full_name" className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+              <User className="w-3.5 h-3.5 text-[#9b8f7c]" />
               Nama Lengkap
             </Label>
             <Input
@@ -119,32 +119,32 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
               name="full_name"
               defaultValue={profile?.full_name ?? ""}
               placeholder="Masukkan nama lengkap"
-              className="rounded-xl text-sm"
+              className="rounded-[8px] bg-[#151311] border-[#4e4635] text-[#e8e1dd] text-sm focus-visible:ring-[#F5C451] focus-visible:border-[#F5C451] placeholder:text-[#9b8f7c]"
             />
           </div>
 
           {/* Email (read-only) */}
           <div>
-            <Label className="text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-slate-400" />
+            <Label className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+              <Mail className="w-3.5 h-3.5 text-[#9b8f7c]" />
               Email
             </Label>
-            <div className="flex items-center px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-500 gap-2">
+            <div className="flex items-center px-3.5 py-2.5 bg-[#151311] border border-[#4e4635] rounded-[8px] text-sm text-[#d2c5b0] gap-2">
               <span className="flex-1 truncate">{userEmail}</span>
-              <span className="text-xs bg-slate-200 text-slate-500 px-2 py-0.5 rounded-md shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F5C451] text-[#12100E] px-2 py-0.5 rounded-full shrink-0">
                 Via Google
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#9b8f7c] mt-1.5">
               Email tidak bisa diubah karena terhubung dengan Google
             </p>
           </div>
 
           {/* Bio */}
           <div>
-            <Label htmlFor="bio" className="text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-slate-400" />
-              Bio <span className="text-slate-400 font-normal">(opsional)</span>
+            <Label htmlFor="bio" className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+              <FileText className="w-3.5 h-3.5 text-[#9b8f7c]" />
+              Bio <span className="text-[#9b8f7c] font-normal lowercase tracking-normal">(opsional)</span>
             </Label>
             <Textarea
               id="bio"
@@ -152,18 +152,18 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
               defaultValue={profile?.bio ?? ""}
               placeholder="Ceritakan sedikit tentang dirimu atau tokomu..."
               rows={4}
-              className="rounded-xl text-sm resize-none"
+              className="rounded-[8px] bg-[#151311] border-[#4e4635] text-[#e8e1dd] text-sm resize-none focus-visible:ring-[#F5C451] focus-visible:border-[#F5C451] placeholder:text-[#9b8f7c]"
             />
           </div>
 
           {/* Submit */}
-          <div className="flex justify-end pt-1">
+          <div className="flex justify-end pt-3">
             <Button
               type="submit"
               disabled={isPending}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-2 px-6"
+              className="bg-[#F5C451] hover:bg-[#ffe4af] text-[#12100E] rounded-[8px] gap-2 px-6 font-semibold"
             >
-              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isPending && <Loader2 className="w-4 h-4 animate-spin text-[#12100E]" />}
               {isPending ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </div>
@@ -171,18 +171,18 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
       </div>
 
       {/* Account Info */}
-      <div className="lg:col-span-3 bg-slate-50 rounded-2xl border border-slate-100 p-5">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+      <div className="lg:col-span-3 bg-[#2A2621]/50 rounded-[16px] border border-white/10 p-5 backdrop-blur-sm">
+        <h3 className="text-xs font-semibold text-[#9b8f7c] uppercase tracking-wider mb-4">
           Info Akun
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-slate-400" />
+            <div className="w-9 h-9 rounded-[8px] bg-[#151311] border border-[#4e4635] flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-[#F5C451]" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Member sejak</p>
-              <p className="font-medium text-slate-700">
+              <p className="text-xs text-[#9b8f7c]">Member sejak</p>
+              <p className="font-medium text-[#e8e1dd]">
                 {profile?.created_at
                   ? new Intl.DateTimeFormat("id-ID", {
                       day: "numeric",
@@ -194,12 +194,12 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-              <Mail className="w-4 h-4 text-slate-400" />
+            <div className="w-9 h-9 rounded-[8px] bg-[#151311] border border-[#4e4635] flex items-center justify-center shrink-0">
+              <Mail className="w-4 h-4 text-[#F5C451]" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Provider</p>
-              <p className="font-medium text-slate-700">Google OAuth</p>
+              <p className="text-xs text-[#9b8f7c]">Provider</p>
+              <p className="font-medium text-[#e8e1dd]">Google OAuth</p>
             </div>
           </div>
         </div>
