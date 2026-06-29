@@ -28,7 +28,6 @@ const navItems = [
 ]
 
 const accountMenuItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/products", label: "Produk Saya", icon: Package },
   { href: "/dashboard/profile", label: "Pengaturan Profil", icon: Settings },
 ]
