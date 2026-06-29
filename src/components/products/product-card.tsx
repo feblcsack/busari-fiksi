@@ -37,76 +37,65 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
 
   return (
     <>
-      <Card className="overflow-hidden group hover:shadow-lg hover:shadow-[#F5C451]/5 transition-all duration-300 bg-[#2A2621] border-[#4e4635] rounded-[16px] font-sans">
-        {/* Product Image */}
-        <div className="aspect-square relative bg-[#151311]">
+      <Card className="group bg-[#141210] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors duration-300">
+        {/* Product Image - Clean Minimalist Canvas */}
+        <div className="aspect-square relative bg-[#1A1816] p-4 flex items-center justify-center">
           {showImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={product.image_url!}
               alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
               onError={() => setImgError(true)}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Package className="w-12 h-12 text-[#4e4635]" />
-            </div>
+            <Package className="w-10 h-10 text-white/20" />
           )}
-          
-          {/* Subtle gradient overlay for better contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#151311]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-          {/* Actions overlay */}
-          <div className="absolute inset-0 bg-[#151311]/20 group-hover:bg-[#151311]/40 transition-colors duration-300" />
+          {/* Minimalist Actions overlay */}
           <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               size="icon"
               variant="secondary"
-              className="h-9 w-9 rounded-[8px] bg-[#151311]/70 backdrop-blur-md border border-white/10 text-[#F5C451] hover:bg-[#F5C451] hover:text-[#12100E] hover:border-[#F5C451] transition-all"
+              className="h-8 w-8 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-[#F5C451] hover:text-black transition-all"
               onClick={() => onEdit(product)}
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="icon"
               variant="secondary"
-              className="h-9 w-9 rounded-[8px] bg-[#151311]/70 backdrop-blur-md border border-white/10 text-[#ffb4ab] hover:bg-[#ffb4ab] hover:text-[#690005] hover:border-[#ffb4ab] transition-all"
+              className="h-8 w-8 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-[#ffb4ab] hover:text-black transition-all"
               onClick={() => setDeleteOpen(true)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
-        {/* Product Info */}
+        {/* Product Info - Minimalist Text */}
         <div className="p-4">
-          <h3 className="font-semibold text-[#e8e1dd] text-sm leading-tight line-clamp-1">
+          <h3 className="font-medium text-[#e8e1dd] text-sm leading-tight line-clamp-1">
             {product.name}
           </h3>
-          {product.description && (
-            <p className="text-xs text-[#d2c5b0] mt-1.5 line-clamp-2 leading-relaxed">
-              {product.description}
-            </p>
-          )}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#4e4635]/50">
-            <span className="text-[#F5C451] font-semibold text-sm tracking-wide">
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-[#F5C451] font-semibold text-sm">
               {formatPrice(product.price)}
             </span>
-            <span className="text-xs text-[#9b8f7c]">
+            <span className="text-[11px] text-[#9b8f7c]">
               {formatDate(product.created_at)}
             </span>
           </div>
         </div>
       </Card>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation dialog - Modern UI */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="max-w-sm bg-[#2A2621] border-[#4e4635] text-[#e8e1dd] sm:rounded-[16px] p-6 font-sans shadow-2xl shadow-black/50">
+        <DialogContent className="max-w-sm bg-[#141210] border-white/10 text-[#e8e1dd] rounded-2xl p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-[#ffb4ab] text-xl">Hapus produk?</DialogTitle>
-            <DialogDescription className="text-[#d2c5b0] mt-2">
-              <span className="font-semibold text-[#e8e1dd]">&ldquo;{product.name}&rdquo;</span> akan dihapus secara permanen dan tidak bisa dikembalikan.
+            <DialogDescription className="text-[#9b8f7c] mt-2">
+              <span className="text-[#e8e1dd]">&ldquo;{product.name}&rdquo;</span> akan dihapus permanen.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-3 mt-4 pt-2">
@@ -114,7 +103,7 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
               variant="outline" 
               onClick={() => setDeleteOpen(false)} 
               disabled={deleting}
-              className="bg-transparent border-[#4e4635] text-[#e8e1dd] hover:bg-[#373432] hover:text-white rounded-[8px]"
+              className="bg-transparent border-white/10 text-[#e8e1dd] hover:bg-white/5 rounded-xl"
             >
               Batal
             </Button>
@@ -122,7 +111,7 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
               variant="destructive" 
               onClick={handleDelete} 
               disabled={deleting}
-              className="bg-[#93000a] text-[#ffdad6] hover:bg-[#ffb4ab] hover:text-[#690005] rounded-[8px] font-semibold"
+              className="bg-[#93000a] text-[#ffdad6] hover:bg-[#ffb4ab] hover:text-[#690005] rounded-xl"
             >
               {deleting ? "Menghapus..." : "Hapus"}
             </Button>
