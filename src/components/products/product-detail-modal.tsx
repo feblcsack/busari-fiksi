@@ -173,7 +173,7 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
       />
 
       <div
-        className={`relative w-full max-w-2xl max-h-[92vh] md:max-h-[88vh] flex flex-col overflow-hidden rounded-t-xl md:rounded-xl mx-0 md:mx-4 bg-[#1d1b19] border border-white/[0.06] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none ${
+        className={`relative w-full max-w-2xl max-h-[92vh] md:max-h-[88vh] flex flex-col overflow-hidden rounded-t-xl md:rounded-xl mx-0 md:mx-4 bg-[#1d1b19] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none ${
           isVisible && !isClosing
             ? "translate-y-0 opacity-100 md:scale-100"
             : "translate-y-6 opacity-0 md:translate-y-0 md:scale-[0.97]"
@@ -258,7 +258,7 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
                   Ulasan berhasil dikirim. Terima kasih sudah berbagi pengalaman.
                 </div>
               ) : (
-                <div className="rounded-md p-4 mb-6 bg-white/[0.02] border border-white/[0.06]">
+                <div className="rounded-md p-4 mb-6 bg-white/[0.02]">
                   <p className="font-sans text-xs font-semibold uppercase tracking-wider text-[#9b8f7c] mb-3">
                     Tulis Ulasanmu
                   </p>
@@ -300,7 +300,7 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
               ) : (
                 <div className="flex flex-col gap-3 pb-2">
                   {reviews.map((review) => (
-                    <div key={review.id} className="rounded-md p-4 bg-white/[0.02] border border-white/[0.06]">
+                    <div key={review.id} className="rounded-md p-4 bg-white/[0.02]">
                       <div className="flex items-center justify-between gap-2 mb-2">
                         {review.reviewer_name ? (
                           <span className="font-sans text-xs font-medium text-[#d2c5b0]">
