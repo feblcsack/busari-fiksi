@@ -4,12 +4,8 @@ import { useState, useRef, useTransition } from "react"
 import Image from "next/image"
 import { Profile } from "@/types"
 import { updateProfile } from "@/actions/profile"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { showToast } from "@/components/ui/toast"
-import { Camera, Loader2, User, Mail, FileText } from "lucide-react"
+import { Camera, Loader2, User, Mail, FileText, MessageCircle } from "lucide-react"
 
 interface ProfileClientProps {
   profile: Profile | null
@@ -52,137 +48,251 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans text-[#e8e1dd]">
-      {/* Avatar Card */}
-      <div className="bg-[#2A2621] rounded-[16px] border border-white/10 shadow-sm p-6 flex flex-col items-center text-center">
-        <div
-          className="relative cursor-pointer group mb-4"
-          onClick={() => fileRef.current?.click()}
-        >
-          <div className="w-24 h-24 rounded-[16px] overflow-hidden bg-[#151311] flex items-center justify-center border border-[#4e4635] shadow-md">
-            {avatarPreview ? (
-              <Image
-                src={avatarPreview}
-                alt="Avatar"
-                width={96}
-                height={96}
-                className="object-cover w-full h-full"
-                unoptimized={avatarPreview.startsWith("blob:")}
-              />
-            ) : (
-              <span className="text-2xl font-serif text-[#F5C451]">{initials}</span>
-            )}
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#F5C451] border-2 border-[#2A2621] flex items-center justify-center group-hover:bg-[#ffe4af] transition-colors shadow-sm">
-            <Camera className="w-3.5 h-3.5 text-[#12100E]" />
-          </div>
+    <div
+      className="min-h-screen py-10 px-4 md:px-8"
+      style={{ background: "#111009", fontFamily: "Hanken Grotesk, sans-serif" }}
+    >
+      <div className="max-w-2xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="mb-8">
+          <p
+            className="text-[10px] font-bold tracking-[0.18em] uppercase mb-2"
+            style={{ color: "#F5C451", opacity: 0.8 }}
+          >
+            Akun
+          </p>
+          <h1
+            className="text-2xl font-normal"
+            style={{ color: "#e8e1dd", fontFamily: "Libre Caslon Text, serif" }}
+          >
+            Profil & Pengaturan
+          </h1>
         </div>
 
-        <p className="font-semibold text-[#e8e1dd] text-sm">
-          {profile?.full_name ?? "Pengguna"}
-        </p>
-        <p className="text-[#d2c5b0] text-xs mt-0.5">{userEmail}</p>
-
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="mt-4 text-xs text-[#F5C451] font-medium hover:text-[#ffe4af] hover:underline transition-colors"
-        >
-          Ganti foto profil
-        </button>
-        <p className="text-xs text-[#9b8f7c] mt-1">PNG, JPG · Maks. 5MB</p>
-      </div>
-
-      {/* Edit Form */}
-      <div className="lg:col-span-2 bg-[#2A2621] rounded-[16px] border border-white/10 shadow-sm p-6">
-        <h2 className="font-serif text-2xl text-[#e8e1dd] mb-6">Informasi Akun</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Hidden avatar input */}
-          <input
-            ref={fileRef}
-            type="file"
-            name="avatar"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            className="hidden"
-          />
-
-          {/* Full Name */}
-          <div>
-            <Label htmlFor="full_name" className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-              <User className="w-3.5 h-3.5 text-[#9b8f7c]" />
-              Nama Lengkap
-            </Label>
-            <Input
-              id="full_name"
-              name="full_name"
-              defaultValue={profile?.full_name ?? ""}
-              placeholder="Masukkan nama lengkap"
-              className="rounded-[8px] bg-[#151311] border-[#4e4635] text-[#e8e1dd] text-sm focus-visible:ring-[#F5C451] focus-visible:border-[#F5C451] placeholder:text-[#9b8f7c]"
-            />
-          </div>
-
-          {/* Email (read-only) */}
-          <div>
-            <Label className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-              <Mail className="w-3.5 h-3.5 text-[#9b8f7c]" />
-              Email
-            </Label>
-            <div className="flex items-center px-3.5 py-2.5 bg-[#151311] border border-[#4e4635] rounded-[8px] text-sm text-[#d2c5b0] gap-2">
-              <span className="flex-1 truncate">{userEmail}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F5C451] text-[#12100E] px-2 py-0.5 rounded-full shrink-0">
-                Via Google
-              </span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar + Identity */}
+          <div
+            className="rounded-2xl p-5 flex items-center gap-5"
+            style={{
+              background: "#1a1814",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div className="relative cursor-pointer shrink-0" onClick={() => fileRef.current?.click()}>
+              <div
+                className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center"
+                style={{ background: "#100f0d", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                {avatarPreview ? (
+                  <Image
+                    src={avatarPreview}
+                    alt="Avatar"
+                    width={64}
+                    height={64}
+                    className="object-cover w-full h-full"
+                    unoptimized={avatarPreview.startsWith("blob:")}
+                  />
+                ) : (
+                  <span
+                    className="text-lg"
+                    style={{ fontFamily: "Libre Caslon Text, serif", color: "#F5C451" }}
+                  >
+                    {initials}
+                  </span>
+                )}
+              </div>
+              <div
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ background: "#F5C451", border: "2px solid #111009" }}
+              >
+                <Camera className="w-2.5 h-2.5" style={{ color: "#3f2e00" }} />
+              </div>
             </div>
-            <p className="text-xs text-[#9b8f7c] mt-1.5">
-              Email tidak bisa diubah karena terhubung dengan Google
-            </p>
-          </div>
 
-          {/* Bio */}
-          <div>
-            <Label htmlFor="bio" className="text-xs font-semibold text-[#d2c5b0] mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-              <FileText className="w-3.5 h-3.5 text-[#9b8f7c]" />
-              Bio <span className="text-[#9b8f7c] font-normal lowercase tracking-normal">(opsional)</span>
-            </Label>
-            <Textarea
-              id="bio"
-              name="bio"
-              defaultValue={profile?.bio ?? ""}
-              placeholder="Ceritakan sedikit tentang dirimu atau tokomu..."
-              rows={4}
-              className="rounded-[8px] bg-[#151311] border-[#4e4635] text-[#e8e1dd] text-sm resize-none focus-visible:ring-[#F5C451] focus-visible:border-[#F5C451] placeholder:text-[#9b8f7c]"
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate" style={{ color: "#e8e1dd" }}>
+                {profile?.full_name ?? "Pengguna"}
+              </p>
+              <p className="text-xs mt-0.5 truncate" style={{ color: "#6b6356" }}>
+                {userEmail}
+              </p>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="text-[11px] mt-2 transition-opacity hover:opacity-70"
+                style={{ color: "#F5C451" }}
+              >
+                Ganti foto
+              </button>
+            </div>
+
+            <input
+              ref={fileRef}
+              type="file"
+              name="avatar"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
             />
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end pt-3">
-            <Button
+          {/* Form fields */}
+          <div
+            className="rounded-2xl p-5 space-y-5"
+            style={{
+              background: "#1a1814",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            {/* Full Name */}
+            <div className="space-y-2">
+              <label
+                htmlFor="full_name"
+                className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#6b6356" }}
+              >
+                <User className="w-3 h-3" />
+                Nama Lengkap
+              </label>
+              <input
+                id="full_name"
+                name="full_name"
+                defaultValue={profile?.full_name ?? ""}
+                placeholder="Nama lengkap kamu"
+                className="w-full text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  color: "#e8e1dd",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(245,196,81,0.4)")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.07)")}
+              />
+            </div>
+
+            {/* Email (readonly) */}
+            <div className="space-y-2">
+              <label
+                className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#6b6356" }}
+              >
+                <Mail className="w-3 h-3" />
+                Email
+              </label>
+              <div
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                <span className="flex-1 truncate" style={{ color: "#6b6356" }}>
+                  {userEmail}
+                </span>
+                <span
+                  className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0"
+                  style={{
+                    background: "rgba(245,196,81,0.1)",
+                    color: "#F5C451",
+                    border: "1px solid rgba(245,196,81,0.18)",
+                  }}
+                >
+                  Google
+                </span>
+              </div>
+            </div>
+
+            {/* WhatsApp number */}
+            <div className="space-y-2">
+              <label
+                htmlFor="whatsapp_number"
+                className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#6b6356" }}
+              >
+                <MessageCircle className="w-3 h-3" />
+                Nomor WhatsApp Toko
+              </label>
+              <input
+                id="whatsapp_number"
+                name="whatsapp_number"
+                type="tel"
+                inputMode="numeric"
+                defaultValue={profile?.whatsapp_number ?? ""}
+                placeholder="contoh: 6281234567890"
+                className="w-full text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  color: "#e8e1dd",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(37,211,102,0.45)")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.07)")}
+              />
+              <p className="text-[11px]" style={{ color: "#4e4635" }}>
+                Gunakan kode negara tanpa tanda + atau 0 di depan. Pembeli akan menghubungimu lewat nomor ini.
+              </p>
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-2">
+              <label
+                htmlFor="bio"
+                className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#6b6356" }}
+              >
+                <FileText className="w-3 h-3" />
+                Bio
+                <span className="font-normal normal-case tracking-normal ml-1" style={{ color: "#4e4635" }}>
+                  opsional
+                </span>
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                defaultValue={profile?.bio ?? ""}
+                placeholder="Ceritakan tokomu dalam beberapa kalimat..."
+                rows={3}
+                className="w-full text-sm rounded-xl px-3.5 py-2.5 outline-none resize-none transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  color: "#e8e1dd",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(245,196,81,0.4)")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.07)")}
+              />
+            </div>
+
+            {/* Submit */}
+            <button
               type="submit"
               disabled={isPending}
-              className="bg-[#F5C451] hover:bg-[#ffe4af] text-[#12100E] rounded-[8px] gap-2 px-6 font-semibold"
+              className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+              style={{ background: "#F5C451", color: "#3f2e00" }}
             >
-              {isPending && <Loader2 className="w-4 h-4 animate-spin text-[#12100E]" />}
+              {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {isPending ? "Menyimpan..." : "Simpan Perubahan"}
-            </Button>
+            </button>
           </div>
         </form>
-      </div>
 
-      {/* Account Info */}
-      <div className="lg:col-span-3 bg-[#2A2621]/50 rounded-[16px] border border-white/10 p-5 backdrop-blur-sm">
-        <h3 className="text-xs font-semibold text-[#9b8f7c] uppercase tracking-wider mb-4">
-          Info Akun
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-[8px] bg-[#151311] border border-[#4e4635] flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-[#F5C451]" />
-            </div>
+        {/* Account meta */}
+        <div
+          className="rounded-2xl p-5"
+          style={{
+            background: "rgba(255,255,255,0.015)",
+            border: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          <p className="text-[10px] font-bold tracking-widest uppercase mb-4" style={{ color: "#4e4635" }}>
+            Info Akun
+          </p>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-[#9b8f7c]">Member sejak</p>
-              <p className="font-medium text-[#e8e1dd]">
+              <p className="text-[11px] mb-1" style={{ color: "#4e4635" }}>
+                Member sejak
+              </p>
+              <p className="text-sm" style={{ color: "#9b8f7c" }}>
                 {profile?.created_at
                   ? new Intl.DateTimeFormat("id-ID", {
                       day: "numeric",
@@ -192,14 +302,13 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
                   : "—"}
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-[8px] bg-[#151311] border border-[#4e4635] flex items-center justify-center shrink-0">
-              <Mail className="w-4 h-4 text-[#F5C451]" />
-            </div>
             <div>
-              <p className="text-xs text-[#9b8f7c]">Provider</p>
-              <p className="font-medium text-[#e8e1dd]">Google OAuth</p>
+              <p className="text-[11px] mb-1" style={{ color: "#4e4635" }}>
+                Login dengan
+              </p>
+              <p className="text-sm" style={{ color: "#9b8f7c" }}>
+                Google OAuth
+              </p>
             </div>
           </div>
         </div>
