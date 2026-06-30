@@ -271,7 +271,7 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
                     placeholder="Ceritakan pengalamanmu..."
                     rows={3}
                     aria-label="Tulis ulasanmu"
-                    className="w-full resize-none rounded px-3 py-2.5 font-sans text-sm text-[#e8e1dd] bg-white/5 border border-white/10 outline-none transition-colors focus:border-[#F5C451]/50"
+                    className="w-full resize-none rounded px-3 py-2.5 font-sans text-sm text-[#e8e1dd] bg-white/5 outline-none transition-colors focus:border-[#F5C451]/50"
                   />
                   {submitError && (
                     <p className="mt-1.5 font-sans text-xs text-[#ffb4ab]" role="alert">
