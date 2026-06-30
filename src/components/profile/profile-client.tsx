@@ -267,7 +267,7 @@ export function ProfileClient({ profile, userEmail }: ProfileClientProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 pointer"
               style={{ background: "#F5C451", color: "#3f2e00" }}
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}

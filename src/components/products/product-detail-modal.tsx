@@ -238,8 +238,8 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
 
             <button
               onClick={handleWhatsAppBuy}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded font-sans text-sm font-semibold tracking-wide text-white bg-[#25D366] transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/50 mb-8"
-              style={{ boxShadow: "0 8px 24px -8px rgba(37, 211, 102, 0.35)" }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded font-sans text-sm font-semibold tracking-wide text-white bg-[#25D366] transition-all pointer duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/50 mb-8"
+              
             >
               <MessageCircle className="w-5 h-5" aria-hidden="true" />
               Beli via WhatsApp
