@@ -4,6 +4,7 @@ export interface Profile {
   email: string | null
   avatar_url: string | null
   bio: string | null
+  whatsapp_number: string | null
   created_at: string
 }
 
@@ -27,5 +28,6 @@ export interface ProductFormData {
 export interface ProfileFormData {
   full_name: string
   bio: string
+  whatsapp_number?: string
   avatar?: File | null
 }

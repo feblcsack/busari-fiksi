@@ -31,7 +31,13 @@ export async function updateProfile(formData: FormData) {
 
   const full_name = formData.get("full_name") as string
   const bio = formData.get("bio") as string
+  const whatsapp_number_raw = formData.get("whatsapp_number") as string | null
   const avatarFile = formData.get("avatar") as File | null
+
+  // Normalize: strip everything except digits, store null when empty
+  const whatsapp_number = whatsapp_number_raw
+    ? whatsapp_number_raw.replace(/\D/g, "") || null
+    : null
 
   let avatar_url: string | undefined
 
@@ -52,7 +58,7 @@ export async function updateProfile(formData: FormData) {
     avatar_url = urlData.publicUrl
   }
 
-  const updateData: Partial<Profile> = { full_name, bio }
+  const updateData: Partial<Profile> = { full_name, bio, whatsapp_number }
   if (avatar_url) updateData.avatar_url = avatar_url
 
   const { error } = await supabase
@@ -64,6 +70,7 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/profile")
+  revalidatePath("/katalog")
 
   return { success: true }
 }
