@@ -350,7 +350,7 @@ export default function HomePage() {
         {/* ── Footer note ──────────────────────────────────────────────── */}
         <div className="pb-6 text-center">
           <p className="text-[11px]" style={{ color: "#4e4635" }}>
-            © 2026 · Dibuat dengan ❤ untuk UMKM Indonesia
+            © 2026 · Busari 
           </p>
         </div>
       </div>

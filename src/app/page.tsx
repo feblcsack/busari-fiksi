@@ -744,9 +744,6 @@ export default async function Home() {
           <p className="text-[11px]" style={{ color: "#4e4635" }}>
             © 2024 BUSARI Artisanal Noir. Hak cipta dilindungi.
           </p>
-          <p className="text-[11px]" style={{ color: "#4e4635" }}>
-            Dibuat dengan ❤ untuk pengrajin Indonesia
-          </p>
         </div>
       </footer>
     </div>
