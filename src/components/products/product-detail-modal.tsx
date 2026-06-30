@@ -55,7 +55,6 @@ export function ProductDetailModal({ product, onClose, whatsappNumber }: Product
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     if (!product) return
@@ -71,7 +70,6 @@ export function ProductDetailModal({ product, onClose, whatsappNumber }: Product
     setSubmitSuccess(false)
     setComment("")
     setRating(5)
-    setImgError(false)
 
     getProductReviews(product.id).then((data) => {
       setReviews(data)
@@ -103,196 +101,104 @@ export function ProductDetailModal({ product, onClose, whatsappNumber }: Product
     })
   }
 
-  function handleWhatsApp() {
+  const hasWhatsApp = Boolean((whatsappNumber ?? "").replace(/\D/g, ""))
+
+  const handleWhatsAppBuy = () => {
     if (!product) return
     const number = (whatsappNumber ?? "").replace(/\D/g, "")
     if (!number) return
-
-    const message = `Halo, saya tertarik dengan produk "${product.name}" (${formatPrice(
+    const message = `Halo, saya tertarik dengan produk *${product.name}* seharga ${formatPrice(
       product.price
-    )}) yang saya lihat di etalase Anda. Apakah masih tersedia?`
-
+    )}. Apakah stoknya masih tersedia?`
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, "_blank")
   }
-
-  const showImage = product.image_url && !imgError
-  const hasWhatsApp = Boolean((whatsappNumber ?? "").replace(/\D/g, ""))
 
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end md:items-center justify-center"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* Backdrop */}
       <div
         className="absolute inset-0"
         style={{ background: "rgba(10, 8, 6, 0.85)", backdropFilter: "blur(8px)" }}
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div
-        className="relative w-full max-w-2xl max-h-[92vh] md:max-h-[88vh] flex flex-col overflow-hidden rounded-t-3xl md:rounded-3xl mx-0 md:mx-4"
-        style={{
-          background: "#1d1b19",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(240,192,77,0.1)",
-        }}
-      >
-        {/* Close */}
+      <div className="relative w-full max-w-2xl max-h-[92vh] md:max-h-[88vh] flex flex-col overflow-hidden rounded-t-3xl md:rounded-3xl mx-0 md:mx-4 bg-[#141210] border border-white/5 shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/60 transition-colors"
           aria-label="Tutup"
         >
-          <X className="w-4 h-4 text-[#9b8f7c]" />
+          <X className="w-4 h-4 text-[#d2c5b0]" />
         </button>
 
-        {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-0 md:hidden">
-          <div className="w-10 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+          <div className="w-10 h-1 rounded-full bg-white/10" />
         </div>
 
-        {/* Scrollable content */}
         <div className="overflow-y-auto flex-1">
-          {/* Image — contained, never cropped, fits the canvas */}
-          <div
-            className="relative w-full flex items-center justify-center"
-            style={{ aspectRatio: "1/1", maxHeight: "340px", background: "#100f0d" }}
-          >
-            {showImage ? (
-              <img
-                src={product.image_url!}
-                alt={product.name}
-                className="w-full h-full object-contain"
-                onError={() => setImgError(true)}
-              />
+          {/* Gambar — object-contain agar tidak terpotong */}
+          <div className="relative w-full bg-[#1A1816] flex items-center justify-center p-4" style={{ height: "320px" }}>
+            {product.image_url ? (
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-contain" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-14 h-14" style={{ color: "#332f29" }} strokeWidth={1.2} />
-              </div>
+              <Package className="w-16 h-16 text-[#4e4635]" />
             )}
           </div>
 
-          {/* Content */}
-          <div className="px-6 py-5">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[10px] font-semibold tracking-[0.18em] uppercase mb-2"
-                  style={{ color: "#F5C451", fontFamily: "Hanken Grotesk, sans-serif" }}
-                >
-                  UMKM Lokal
-                </p>
-                <h2
-                  className="text-2xl leading-snug"
-                  style={{
-                    color: "#e8e1dd",
-                    fontFamily: "Libre Caslon Text, serif",
-                    fontWeight: 400,
-                  }}
-                >
-                  {product.name}
-                </h2>
+          <div className="px-6 py-6">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div className="flex-1">
+                <h2 className="text-2xl leading-snug font-serif text-[#e8e1dd] mb-1">{product.name}</h2>
                 {reviews.length > 0 && (
                   <div className="flex items-center gap-2 mt-2">
                     <StarRating value={Math.round(avgRating)} readonly />
-                    <span className="text-xs" style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}>
+                    <span className="text-xs text-[#9b8f7c] font-sans">
                       {avgRating.toFixed(1)} · {reviews.length} ulasan
                     </span>
                   </div>
                 )}
               </div>
               <div className="shrink-0 text-right">
-                <p
-                  className="text-xl font-semibold"
-                  style={{ color: "#F5C451", fontFamily: "Hanken Grotesk, sans-serif" }}
-                >
-                  {formatPrice(product.price)}
-                </p>
+                <p className="text-xl font-bold text-[#F5C451] font-sans">{formatPrice(product.price)}</p>
               </div>
             </div>
 
-            {/* Description */}
             {product.description && (
-              <p
-                className="text-sm leading-relaxed mb-6"
-                style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}
-              >
-                {product.description}
-              </p>
+              <div className="mb-6">
+                <p className="text-sm leading-relaxed text-[#d2c5b0] font-sans">{product.description}</p>
+              </div>
             )}
 
-            {/* CTA — WhatsApp */}
+            {/* CTA WhatsApp — nomor dinamis dari profil penjual */}
             <button
-              onClick={handleWhatsApp}
+              onClick={handleWhatsAppBuy}
               disabled={!hasWhatsApp}
-              className="w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98] mb-1 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: "#25D366",
-                color: "#06210f",
-                fontFamily: "Hanken Grotesk, sans-serif",
-              }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98] mb-1 bg-[#25D366] text-white disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <MessageCircle className="w-4 h-4" />
-              Pesan via WhatsApp
+              <MessageCircle className="w-5 h-5" />
+              Beli via WhatsApp
             </button>
-            {!hasWhatsApp && (
-              <p
-                className="text-xs text-center mb-6"
-                style={{ color: "#5a5248", fontFamily: "Hanken Grotesk, sans-serif" }}
-              >
-                Penjual belum menambahkan nomor WhatsApp.
-              </p>
-            )}
-            {hasWhatsApp && (
-              <p
-                className="text-xs text-center mb-6"
-                style={{ color: "#5a5248", fontFamily: "Hanken Grotesk, sans-serif" }}
-              >
-                Kamu akan diarahkan ke WhatsApp untuk bertanya atau memesan
-              </p>
-            )}
+            <p className="text-xs text-center mb-8 text-[#6b6356]">
+              {hasWhatsApp
+                ? "Kamu akan diarahkan ke WhatsApp untuk bertanya atau memesan"
+                : "Penjual belum menambahkan nomor WhatsApp."}
+            </p>
 
-            {/* Divider */}
-            <div className="h-px w-full mb-5" style={{ background: "rgba(78, 70, 53, 0.3)" }} />
+            <div className="h-px w-full mb-6 bg-white/5" />
 
-            {/* Reviews Section */}
+            {/* Ulasan */}
             <div>
-              <p
-                className="text-base font-semibold mb-4"
-                style={{ color: "#e8e1dd", fontFamily: "Libre Caslon Text, serif" }}
-              >
-                Ulasan Pembeli
-              </p>
+              <p className="text-base font-semibold mb-4 font-serif text-[#e8e1dd]">Ulasan Pembeli</p>
 
-              {/* Review form */}
               {submitSuccess ? (
-                <div
-                  className="rounded-xl p-4 mb-4 text-sm text-center"
-                  style={{
-                    background: "rgba(245, 196, 81, 0.1)",
-                    border: "1px solid rgba(245, 196, 81, 0.25)",
-                    color: "#F5C451",
-                    fontFamily: "Hanken Grotesk, sans-serif",
-                  }}
-                >
+                <div className="rounded-xl p-4 mb-4 text-sm text-center bg-[#F5C451]/10 text-[#F5C451] border border-[#F5C451]/20">
                   ✓ Ulasan berhasil dikirim. Terima kasih!
                 </div>
               ) : (
-                <div
-                  className="rounded-xl p-4 mb-5"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                  }}
-                >
-                  <p
-                    className="text-xs font-semibold mb-3 uppercase tracking-wider"
-                    style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}
-                  >
+                <div className="rounded-xl p-4 mb-6 bg-white/[0.02] border border-white/5">
+                  <p className="text-xs font-semibold mb-3 uppercase tracking-wider text-[#9b8f7c]">
                     Tulis Ulasanmu
                   </p>
                   <div className="mb-3">
@@ -301,37 +207,15 @@ export function ProductDetailModal({ product, onClose, whatsappNumber }: Product
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    placeholder="Ceritakan pengalamanmu dengan produk ini..."
+                    placeholder="Ceritakan pengalamanmu..."
                     rows={3}
-                    className="w-full text-sm resize-none rounded-lg px-3 py-2.5 outline-none transition-colors"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(78, 70, 53, 0.6)",
-                      color: "#e8e1dd",
-                      fontFamily: "Hanken Grotesk, sans-serif",
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = "rgba(245, 196, 81, 0.5)"
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = "rgba(78, 70, 53, 0.6)"
-                    }}
+                    className="w-full text-sm resize-none rounded-lg px-3 py-2.5 outline-none transition-colors bg-white/5 border border-white/10 text-[#e8e1dd] focus:border-[#F5C451]/50"
                   />
-                  {submitError && (
-                    <p className="text-xs mt-1.5" style={{ color: "#ffb4ab" }}>
-                      {submitError}
-                    </p>
-                  )}
+                  {submitError && <p className="text-xs mt-1.5 text-[#ffb4ab]">{submitError}</p>}
                   <button
                     onClick={handleSubmitReview}
                     disabled={isPending || !comment.trim()}
-                    className="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
-                    style={{
-                      background: "rgba(245, 196, 81, 0.15)",
-                      color: "#F5C451",
-                      border: "1px solid rgba(245, 196, 81, 0.25)",
-                      fontFamily: "Hanken Grotesk, sans-serif",
-                    }}
+                    className="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 bg-[#F5C451]/10 text-[#F5C451] hover:bg-[#F5C451]/20"
                   >
                     <Send className="w-3 h-3" />
                     {isPending ? "Mengirim..." : "Kirim Ulasan"}
@@ -339,55 +223,25 @@ export function ProductDetailModal({ product, onClose, whatsappNumber }: Product
                 </div>
               )}
 
-              {/* Review list */}
               {loadingReviews ? (
                 <div className="flex justify-center py-8">
-                  <div
-                    className="w-5 h-5 rounded-full border-2 animate-spin"
-                    style={{ borderColor: "#4e4635", borderTopColor: "#F5C451" }}
-                  />
+                  <div className="w-5 h-5 rounded-full border-2 border-t-[#F5C451] border-[#4e4635] animate-spin" />
                 </div>
               ) : reviews.length === 0 ? (
-                <p
-                  className="text-center text-sm py-6"
-                  style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}
-                >
-                  Belum ada ulasan. Jadilah yang pertama!
-                </p>
+                <p className="text-center text-sm py-6 text-[#9b8f7c]">Belum ada ulasan. Jadilah yang pertama!</p>
               ) : (
                 <div className="flex flex-col gap-3 pb-2">
                   {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="rounded-xl p-4"
-                      style={{
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                      }}
-                    >
+                    <div key={review.id} className="rounded-xl p-4 bg-white/[0.02] border border-white/5">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                            style={{ background: "rgba(245,196,81,0.15)", color: "#F5C451" }}
-                          >
-                            {(review.reviewer_name ?? "U")[0].toUpperCase()}
-                          </div>
-                          <span
-                            className="text-xs font-medium"
-                            style={{ color: "#d2c5b0", fontFamily: "Hanken Grotesk, sans-serif" }}
-                          >
+                          <span className="text-xs font-medium text-[#d2c5b0]">
                             {review.reviewer_name ?? "Pembeli Terverifikasi"}
                           </span>
                         </div>
                         <StarRating value={review.rating} readonly />
                       </div>
-                      <p
-                        className="text-sm leading-relaxed"
-                        style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}
-                      >
-                        {review.comment}
-                      </p>
+                      <p className="text-sm leading-relaxed text-[#9b8f7c]">{review.comment}</p>
                     </div>
                   ))}
                 </div>

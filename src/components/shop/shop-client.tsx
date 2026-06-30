@@ -13,29 +13,28 @@ function ProductCard({ product, onClick }: { product: PublicProduct; onClick: ()
   return (
     <button
       onClick={onClick}
-      className="group text-left w-full rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.99]"
+      className="group text-left w-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
       style={{
-        background: "#221f1d",
-        border: "1px solid rgba(255,255,255,0.07)",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+        background: "#1a1814",
+        border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/4", background: "#151311" }}>
+      {/* Image — object-contain so the product is never cropped */}
+      <div
+        className="relative w-full flex items-center justify-center overflow-hidden"
+        style={{ aspectRatio: "1/1", background: "#100f0d" }}
+      >
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-10 h-10" style={{ color: "#4e4635" }} />
+            <Package className="w-10 h-10" style={{ color: "#332f29" }} strokeWidth={1.2} />
           </div>
         )}
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{ background: "linear-gradient(to top, rgba(21,19,17,0.6) 0%, transparent 50%)" }}
-        />
         <div
           className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-widest uppercase"
           style={{ background: "#F5C451", color: "#3f2e00", fontFamily: "Hanken Grotesk, sans-serif" }}
@@ -43,16 +42,26 @@ function ProductCard({ product, onClick }: { product: PublicProduct; onClick: ()
           UMKM
         </div>
       </div>
+
       <div className="px-3.5 py-3">
-        <p className="text-sm font-medium truncate mb-0.5" style={{ color: "#e8e1dd", fontFamily: "Hanken Grotesk, sans-serif" }}>
+        <p
+          className="text-sm font-medium truncate mb-0.5"
+          style={{ color: "#e8e1dd", fontFamily: "Hanken Grotesk, sans-serif" }}
+        >
           {product.name}
         </p>
         {product.description && (
-          <p className="text-xs truncate mb-2" style={{ color: "#9b8f7c", fontFamily: "Hanken Grotesk, sans-serif" }}>
+          <p
+            className="text-xs truncate mb-2"
+            style={{ color: "#6b6356", fontFamily: "Hanken Grotesk, sans-serif" }}
+          >
             {product.description}
           </p>
         )}
-        <p className="text-sm font-semibold" style={{ color: "#F5C451", fontFamily: "Hanken Grotesk, sans-serif" }}>
+        <p
+          className="text-sm font-semibold"
+          style={{ color: "#F5C451", fontFamily: "Hanken Grotesk, sans-serif" }}
+        >
           {formatPrice(product.price)}
         </p>
       </div>
@@ -227,7 +236,11 @@ export function ShopClient({ initialProducts, profile }: ShopClientProps) {
         )}
       </div>
 
-      <ProductDetailModal product={selected} onClose={() => setSelected(null)} />
+      <ProductDetailModal
+        product={selected}
+        onClose={() => setSelected(null)}
+        whatsappNumber={selected?.seller_whatsapp}
+      />
 
       {/* Profile diterusin ke BottomNav — muncul kalau user login */}
       <BottomNav profile={profile} />

@@ -10,8 +10,9 @@ export interface PublicProduct {
   image_url: string | null
   created_at: string
   user_id: string
-  // joined from profiles table if you have one
+  // joined from profiles table
   seller_name?: string | null
+  seller_whatsapp?: string | null
 }
 
 export interface ProductReview {
@@ -26,19 +27,36 @@ export interface ProductReview {
 
 export async function getPublicProducts(): Promise<PublicProduct[]> {
   const supabase = await createClient()
-
   const { data, error } = await supabase
     .from("products")
-    .select("*")
+    .select(
+      `
+      *,
+      profiles:user_id (
+        full_name,
+        whatsapp_number
+      )
+    `
+    )
     .order("created_at", { ascending: false })
 
   if (error) return []
-  return data || []
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    image_url: row.image_url,
+    created_at: row.created_at,
+    user_id: row.user_id,
+    seller_name: row.profiles?.full_name ?? null,
+    seller_whatsapp: row.profiles?.whatsapp_number ?? null,
+  }))
 }
 
 export async function getProductReviews(productId: string): Promise<ProductReview[]> {
   const supabase = await createClient()
-
   const { data, error } = await supabase
     .from("reviews")
     .select("*")
@@ -70,7 +88,6 @@ export async function submitReview(
     .single()
 
   if (existing) {
-    // Update existing review
     const { error } = await supabase
       .from("reviews")
       .update({ rating, comment, updated_at: new Date().toISOString() })
@@ -78,7 +95,6 @@ export async function submitReview(
 
     if (error) throw new Error(error.message)
   } else {
-    // Insert new review
     const { error } = await supabase.from("reviews").insert({
       product_id: productId,
       user_id: user.id,
