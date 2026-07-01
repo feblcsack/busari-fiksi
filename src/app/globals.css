@@ -2,24 +2,61 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ── Warm Latte — Material Design 3 Light Brown Theme ── */
 :root {
-  --background: #f8f9fc;
-  --foreground: #0f1117;
-  --card: #ffffff;
-  --card-foreground: #0f1117;
-  --border: #e4e7ef;
-  --input: #e4e7ef;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f1117;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f1117;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --ring: #4f46e5;
+  /* MD3 Core */
+  --primary: #6B4E2A;
+  --on-primary: #FFFFFF;
+  --primary-container: #FFDDB8;
+  --on-primary-container: #261200;
+
+  --secondary: #7C5C40;
+  --on-secondary: #FFFFFF;
+  --secondary-container: #FFDCC3;
+  --on-secondary-container: #2F1600;
+
+  --tertiary: #5C6029;
+  --on-tertiary: #FFFFFF;
+  --tertiary-container: #E2E6A3;
+  --on-tertiary-container: #1C1D00;
+
+  --error: #BA1A1A;
+  --on-error: #FFFFFF;
+  --error-container: #FFDAD6;
+  --on-error-container: #410002;
+
+  --surface: #FFF8F3;
+  --on-surface: #201A14;
+  --surface-variant: #F3E0CC;
+  --on-surface-variant: #52432F;
+
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low:  #FDF3EC;
+  --surface-container:      #F8EDE4;
+  --surface-container-high: #F2E7DE;
+  --surface-container-highest: #ECE1D8;
+
+  --outline: #867462;
+  --outline-variant: #D5C3B0;
+
+  --background: #FFF8F3;
+  --on-background: #201A14;
+
+  /* Shadcn/ui shim — mapped to MD3 tokens */
+  --foreground:          var(--on-background);
+  --card:                var(--surface-container-low);
+  --card-foreground:     var(--on-surface);
+  --border:              var(--outline-variant);
+  --input:               var(--surface-container);
+  --primary-foreground:  var(--on-primary);
+  --secondary-foreground: var(--on-secondary);
+  --muted:               var(--surface-container);
+  --muted-foreground:    var(--on-surface-variant);
+  --accent:              var(--primary-container);
+  --accent-foreground:   var(--on-primary-container);
+  --destructive:         var(--error);
+  --destructive-foreground: var(--on-error);
+  --ring:                var(--primary);
   --radius: 0.75rem;
 }
 
@@ -41,6 +78,20 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-ring: var(--ring);
+  /* MD3 extended surface scale */
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
