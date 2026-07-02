@@ -48,7 +48,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     )
   }
 
-  // Check admin role — redirect non-admin users
   if (profile?.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: "#FFF8F3" }}>
@@ -74,9 +73,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     )
   }
 
+  // Fetch pending count for sidebar badge
+  const { count: pendingCount } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending")
+
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#FFF8F3", fontFamily: "Hanken Grotesk, sans-serif" }}>
-      <AdminSidebar profile={profile as Profile} />
+      <AdminSidebar profile={profile as Profile} pendingCount={pendingCount} />
       <main className="flex-1 min-w-0 md:ml-64">
         {children}
       </main>

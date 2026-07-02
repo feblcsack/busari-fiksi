@@ -12,6 +12,7 @@ export async function getProducts(): Promise<Product[]> {
 
   if (!user) return []
 
+  // Ambil semua produk milik user, termasuk status review
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -96,12 +97,14 @@ export async function createProduct(formData: FormData) {
     description,
     price,
     image_url,
+    status: "pending", // semua produk baru masuk antrian review admin
   })
 
   if (error) throw new Error(error.message)
 
   // Revalidate secara 'layout' biar UI langsung update
   revalidatePath("/dashboard", "layout")
+  revalidatePath("/dashboard/products")
   return { success: true }
 }
 
@@ -164,6 +167,8 @@ export async function updateProduct(id: string, formData: FormData) {
 
   // Revalidate secara 'layout'
   revalidatePath("/dashboard", "layout")
+  revalidatePath("/dashboard/products")
+  revalidatePath("/shop")
   return { success: true }
 }
 

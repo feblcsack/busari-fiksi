@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Pencil, Trash2, Package } from "lucide-react"
+import { Pencil, Trash2, Package, Clock, CheckCircle2, XCircle } from "lucide-react"
 import { formatPrice, formatDate } from "@/lib/utils"
 import { Product } from "@/types"
 import { deleteProduct } from "@/actions/products"
@@ -11,6 +11,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 interface ProductCardProps {
   product: Product
   onEdit: (product: Product) => void
+}
+
+function StatusPip({ status }: { status: string | null | undefined }) {
+  const s = status ?? "pending"
+  if (s === "approved") return null // clean look — no badge for approved
+  const config = {
+    pending: { color: "#6B4E2A", bg: "rgba(107,78,42,0.1)", label: "Pending", icon: Clock },
+    rejected: { color: "#BA1A1A", bg: "rgba(186,26,26,0.08)", label: "Ditolak", icon: XCircle },
+  }
+  const c = config[s as keyof typeof config]
+  if (!c) return null
+  const Icon = c.icon
+  return (
+    <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
+      style={{ background: c.bg, color: c.color, border: `1px solid ${c.color}25`, backdropFilter: "blur(4px)" }}>
+      <Icon className="w-2.5 h-2.5" strokeWidth={2.5} />
+      {c.label}
+    </span>
+  )
 }
 
 export function ProductCard({ product, onEdit }: ProductCardProps) {
@@ -48,6 +67,8 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
           ) : (
             <Package className="w-10 h-10" style={{ color: "#D5C3B0" }} strokeWidth={1.2} />
           )}
+          {/* Status pip for non-approved */}
+          <StatusPip status={product.status} />
           {/* Hover actions */}
           <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200"
             style={{ background: "rgba(255,248,243,0.7)", backdropFilter: "blur(3px)" }}>
@@ -73,6 +94,13 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
           {product.description && (
             <p className="text-[11px] leading-relaxed line-clamp-2 mb-3" style={{ color: "#867462", fontFamily: "Hanken Grotesk, sans-serif" }}>
               {product.description}
+            </p>
+          )}
+          {/* Show review note for rejected products */}
+          {product.status === "rejected" && product.review_note && (
+            <p className="text-[11px] mb-2 px-2 py-1.5 rounded-lg leading-relaxed"
+              style={{ color: "#BA1A1A", background: "rgba(186,26,26,0.05)", border: "1px solid rgba(186,26,26,0.1)", fontFamily: "Hanken Grotesk, sans-serif" }}>
+              ↳ {product.review_note}
             </p>
           )}
           <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(107,78,42,0.08)" }}>

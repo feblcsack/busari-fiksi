@@ -12,6 +12,8 @@ import {
   Sparkles,
   ExternalLink,
   BarChart2,
+  Clock,
+  XCircle,
 } from "lucide-react";
 
 // Sparkline chart — light mode colors
@@ -160,8 +162,14 @@ export default async function DashboardPage() {
   const avgPrice = products.length > 0 ? Math.round(totalValue / products.length) : 0;
   const maxPrice = products.length > 0 ? Math.max(...products.map((p) => p.price)) : 0;
   const recentProducts = products.slice(0, 4);
+
+  // Status breakdown
+  const approvedProducts = products.filter((p) => p.status === "approved");
+  const pendingProducts = products.filter((p) => !p.status || p.status === "pending");
+  const rejectedProducts = products.filter((p) => p.status === "rejected");
+
   const healthScore = Math.min(100, Math.round(
-    (Math.min(products.length, 20) / 20) * 50 +
+    (Math.min(approvedProducts.length, 20) / 20) * 50 +
     (products.filter((p) => p.image_url).length / Math.max(products.length, 1)) * 30 +
     (products.filter((p) => p.description).length / Math.max(products.length, 1)) * 20
   ));
@@ -210,10 +218,56 @@ export default async function DashboardPage() {
           )}
         </div>
 
+        {/* ── Review Status Banners ── */}
+        {(pendingProducts.length > 0 || rejectedProducts.length > 0) && (
+          <div className="mb-8 space-y-3">
+            {pendingProducts.length > 0 && (
+              <Link href="/dashboard/products">
+                <div className="flex items-start gap-4 px-5 py-4 rounded-2xl cursor-pointer transition-all hover:-translate-y-0.5"
+                  style={{ background: "rgba(107,78,42,0.06)", border: "1px solid rgba(107,78,42,0.2)" }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: "rgba(107,78,42,0.1)" }}>
+                    <Clock className="w-4 h-4" style={{ color: "#6B4E2A" }} strokeWidth={2} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold" style={{ color: "#201A14" }}>
+                      {pendingProducts.length} produk menunggu review admin
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "#867462" }}>
+                      Produk akan tampil di toko setelah disetujui. Biasanya selesai dalam 1×24 jam.
+                    </p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#6B4E2A" }} />
+                </div>
+              </Link>
+            )}
+            {rejectedProducts.length > 0 && (
+              <Link href="/dashboard/products">
+                <div className="flex items-start gap-4 px-5 py-4 rounded-2xl cursor-pointer transition-all hover:-translate-y-0.5"
+                  style={{ background: "rgba(186,26,26,0.04)", border: "1px solid rgba(186,26,26,0.15)" }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: "rgba(186,26,26,0.08)" }}>
+                    <XCircle className="w-4 h-4" style={{ color: "#BA1A1A" }} strokeWidth={2} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold" style={{ color: "#201A14" }}>
+                      {rejectedProducts.length} produk ditolak — perlu diperbaiki
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "#867462" }}>
+                      Cek catatan admin dan simpan ulang untuk review kembali.
+                    </p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#BA1A1A" }} />
+                </div>
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* ── Stat Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
           {[
-            { label: "Total Koleksi", value: products.length.toString(), sub: "produk aktif", icon: Package, accent: "#6B4E2A" },
+            { label: "Koleksi Aktif", value: approvedProducts.length.toString(), sub: "tampil di toko", icon: Package, accent: "#5C6029" },
             { label: "Nilai Aset", value: products.length > 0 ? formatPrice(totalValue) : "—", sub: "total valuasi", icon: TrendingUp, accent: "#6B4E2A" },
             { label: "Rata-rata Harga", value: products.length > 0 ? formatPrice(avgPrice) : "—", sub: "per produk", icon: ShoppingBag, accent: "#6B4E2A" },
             { label: "Produk Termahal", value: products.length > 0 ? formatPrice(maxPrice) : "—", sub: "harga tertinggi", icon: Sparkles, accent: "#7C5C40" },
