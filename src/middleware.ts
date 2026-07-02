@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Route yang bisa diakses tanpa login
 const PUBLIC_ROUTES = ["/", "/shop", "/home", "/auth/callback"];
 
 export async function middleware(request: NextRequest) {
@@ -16,9 +15,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -28,19 +25,15 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
 
-  // Protect dashboard routes — redirect ke login kalau belum login
+  // Protect dashboard routes
   if (!user && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Redirect user yang sudah login dari halaman "/" ke dashboard
+  // Redirect authenticated users from "/" to dashboard
   if (user && pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
@@ -48,6 +41,15 @@ export async function middleware(request: NextRequest) {
   // Protect try-on route
   if (!user && pathname.startsWith("/try-on")) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Protect admin routes — requires authentication first
+  if (pathname.startsWith("/admin")) {
+    if (!user) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    // Admin role check done in page/action level for efficiency
+    // (avoids extra DB query in every middleware execution)
   }
 
   return supabaseResponse;

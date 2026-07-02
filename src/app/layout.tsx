@@ -25,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-[#f8f9fc] {`${caslon.variable} ${hanken.variable} font-sans bg-[#151311] text-[#e8e1dd] antialiased`}">
+    <html lang="id" className={`h-full antialiased ${caslon.variable} ${hanken.variable}`}>
+      <body className="min-h-full flex flex-col" style={{ backgroundColor: "#FFF8F3", color: "#201A14", fontFamily: "var(--font-hanken), Hanken Grotesk, sans-serif" }}>
         {children}
         <ToastContainer />
       </body>

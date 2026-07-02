@@ -231,7 +231,7 @@ export default async function Home() {
             className="text-xs mb-10 max-w-sm mx-auto"
             style={{ color: "#867462", fontStyle: "italic", fontFamily: "Libre Caslon Text, serif" }}
           >
-            "Every thread carries a story of heritage and pride."
+            &ldquo;Every thread carries a story of heritage and pride.&rdquo;
           </p>
 
           {/* CTA row */}
@@ -437,7 +437,7 @@ export default async function Home() {
                 fontStyle: "italic",
               }}
             >
-              "Setiap pembelian adalah dukungan untuk keluarga pengrajin lokal."
+              &ldquo;Setiap pembelian adalah dukungan untuk keluarga pengrajin lokal.&rdquo;
             </blockquote>
 
             <p className="text-sm mb-8 leading-relaxed" style={{ color: "#52432F" }}>

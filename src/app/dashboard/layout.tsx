@@ -23,7 +23,7 @@ export default async function DashboardLayout({
     .single()
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#151311" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#FFF8F3" }}>
       {children}
       <BottomNav profile={profile as Profile | null} />
     </div>

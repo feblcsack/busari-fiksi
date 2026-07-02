@@ -30,6 +30,7 @@ export async function getPublicProducts(): Promise<PublicProduct[]> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
 
   if (error) return []

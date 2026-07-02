@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, User, LogOut, ShoppingBag, Home, LucideShoppingBag } from "lucide-react"
+import { LayoutDashboard, Package, User, LogOut, ShoppingBag, LucideShoppingBag } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/actions/auth"

@@ -5,6 +5,7 @@ export interface Profile {
   avatar_url: string | null
   bio: string | null
   whatsapp_number: string | null
+  role?: string | null
   created_at: string
 }
 
@@ -15,6 +16,8 @@ export interface Product {
   description: string | null
   price: number
   image_url: string | null
+  status?: string | null
+  review_note?: string | null
   created_at: string
 }
 
@@ -30,4 +33,13 @@ export interface ProfileFormData {
   bio: string
   whatsapp_number?: string
   avatar?: File | null
+}
+
+export interface AdminStats {
+  totalUsers: number
+  totalProducts: number
+  pendingReviews: number
+  approvedProducts: number
+  rejectedProducts: number
+  totalValue: number
 }

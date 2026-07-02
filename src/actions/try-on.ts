@@ -20,18 +20,27 @@ export async function generateTryOn(modelUrl: string, garmentUrl: string) {
     ])
 
     // Mengambil URL hasil gambar dari output Gradio
-    const data = result.data as any[]
-    if (data && data[0] && data[0][0] && data[0][0].image) {
-      return { success: true, url: data[0][0].image.url }
+    const data = Array.isArray(result.data) ? result.data as unknown[] : []
+    if (
+      Array.isArray(data[0]) &&
+      data[0][0] &&
+      typeof data[0][0] === "object" &&
+      data[0][0] !== null &&
+      "image" in data[0][0]
+    ) {
+      const imageEntry = (data[0][0] as { image?: { url?: string } }).image
+      if (imageEntry?.url) {
+        return { success: true, url: imageEntry.url }
+      }
     }
 
     throw new Error("Gagal memproses gambar dari AI.")
   } catch (error: any) {
     console.error("AI Try-On Error:", error)
     // Error handling kalau server Hugging Face lagi kepenuhan (Queue Full)
-    return { 
-      success: false, 
-      error: error.message || "Server AI sedang sibuk/penuh. Coba beberapa saat lagi." 
+    return {
+      success: false,
+      error: error.message || "Server AI sedang sibuk/penuh. Coba beberapa saat lagi.",
     }
   }
 }
