@@ -56,7 +56,17 @@ export async function createProduct(formData: FormData) {
   let image_url: string | null = null
 
   if (imageFile && imageFile.size > 0) {
-    const fileExt = imageFile.name.split(".").pop()
+    // Validate type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if (!allowedTypes.includes(imageFile.type)) {
+      throw new Error("Format gambar tidak didukung. Gunakan JPG, PNG, WEBP, atau GIF.")
+    }
+    // Max 10MB for product images
+    if (imageFile.size > 10 * 1024 * 1024) {
+      throw new Error("Ukuran gambar maksimal 10MB.")
+    }
+
+    const fileExt = imageFile.name.split(".").pop()?.toLowerCase() ?? "jpg"
     const fileName = `${user.id}-${Date.now()}.${fileExt}`
 
     // Convert File menjadi Buffer biar bisa dibaca di environment Server Node.js
@@ -111,7 +121,16 @@ export async function updateProduct(id: string, formData: FormData) {
   const updateData: Partial<Product> = { name, description, price }
 
   if (imageFile && imageFile.size > 0) {
-    const fileExt = imageFile.name.split(".").pop()
+    // Validate type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if (!allowedTypes.includes(imageFile.type)) {
+      throw new Error("Format gambar tidak didukung. Gunakan JPG, PNG, WEBP, atau GIF.")
+    }
+    if (imageFile.size > 10 * 1024 * 1024) {
+      throw new Error("Ukuran gambar maksimal 10MB.")
+    }
+
+    const fileExt = imageFile.name.split(".").pop()?.toLowerCase() ?? "jpg"
     const fileName = `${user.id}-${Date.now()}.${fileExt}`
 
     // Convert File menjadi Buffer

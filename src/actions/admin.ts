@@ -10,11 +10,14 @@ async function requireAdmin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Not authenticated")
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single()
+
+  // If the role column doesn't exist yet, the query may error — treat as not admin
+  if (error) throw new Error("Unauthorized: Could not verify admin role. Jalankan SQL migration di ADMIN_SETUP.md terlebih dahulu.")
 
   if (profile?.role !== "admin") throw new Error("Unauthorized: Admin access required")
   return { supabase, user }
@@ -26,17 +29,30 @@ export async function adminGetAllProducts(): Promise<(Product & { seller_name?: 
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, profiles(full_name, email)")
+    .select(`
+      *,
+      profiles:user_id (
+        full_name,
+        email
+      )
+    `)
     .order("created_at", { ascending: false })
 
-  if (error) return []
+  if (error) {
+    console.error("adminGetAllProducts error:", error.message)
+    return []
+  }
 
-  return (data || []).map((p: Product & { profiles?: { full_name?: string | null; email?: string | null } | null }) => ({
-    ...p,
-    seller_name: p.profiles?.full_name ?? null,
-    seller_email: p.profiles?.email ?? null,
-    profiles: undefined,
-  }))
+  return (data || []).map((p: Record<string, unknown>) => {
+    const profiles = p.profiles as { full_name?: string | null; email?: string | null } | null
+    const { profiles: _ignored, ...rest } = p
+    void _ignored
+    return {
+      ...(rest as unknown as Product),
+      seller_name: profiles?.full_name ?? null,
+      seller_email: profiles?.email ?? null,
+    }
+  })
 }
 
 // ── GET ALL USERS ─────────────────────────────────────────────────────────
@@ -57,19 +73,20 @@ export async function adminGetStats(): Promise<AdminStats> {
   const { supabase } = await requireAdmin()
 
   const [usersResult, productsResult] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact" }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("products").select("price, status"),
   ])
 
-  const products = productsResult.data || []
-  const totalValue = products.reduce((sum: number, p: { price: number }) => sum + p.price, 0)
+  const products = (productsResult.data || []) as { price: number; status: string | null }[]
+  const totalValue = products.reduce((sum, p) => sum + (p.price ?? 0), 0)
 
   return {
     totalUsers: usersResult.count ?? 0,
     totalProducts: products.length,
-    pendingReviews: products.filter((p: { status: string | null }) => !p.status || p.status === "pending").length,
-    approvedProducts: products.filter((p: { status: string | null }) => p.status === "approved").length,
-    rejectedProducts: products.filter((p: { status: string | null }) => p.status === "rejected").length,
+    // Products without status column (null) also count as pending
+    pendingReviews: products.filter((p) => !p.status || p.status === "pending").length,
+    approvedProducts: products.filter((p) => p.status === "approved").length,
+    rejectedProducts: products.filter((p) => p.status === "rejected").length,
     totalValue,
   }
 }
@@ -87,6 +104,7 @@ export async function adminReviewProduct(productId: string, status: "approved" |
 
   revalidatePath("/admin")
   revalidatePath("/admin/products")
+  revalidatePath("/admin/reviews")
   revalidatePath("/shop")
   return { success: true }
 }
@@ -217,7 +235,13 @@ export async function checkIsAdmin(): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return false
 
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    if (error) return false
     return profile?.role === "admin"
   } catch {
     return false

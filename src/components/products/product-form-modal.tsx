@@ -61,7 +61,9 @@ export function ProductFormModal({ open, onClose, mode, product }: ProductFormMo
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { showToast("Ukuran gambar maksimal 5MB", "error"); return }
+    if (file.size > 10 * 1024 * 1024) { showToast("Ukuran gambar maksimal 10MB", "error"); return }
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+    if (!allowed.includes(file.type)) { showToast("Format tidak didukung. Gunakan JPG, PNG, atau WEBP", "error"); return }
     setPreview(URL.createObjectURL(file))
   }
 
@@ -134,7 +136,7 @@ export function ProductFormModal({ open, onClose, mode, product }: ProductFormMo
                       <ImageIcon className="w-5 h-5" style={{ color: "#6B4E2A" }} strokeWidth={1.5} />
                     </div>
                     <p className="text-sm font-medium" style={{ color: "#52432F" }}>Klik untuk upload foto</p>
-                    <p className="text-xs mt-1" style={{ color: "#D5C3B0" }}>PNG, JPG, WEBP · Maks. 5MB</p>
+                    <p className="text-xs mt-1" style={{ color: "#D5C3B0" }}>PNG, JPG, WEBP · Maks. 10MB</p>
                   </div>
                 )}
               </div>
