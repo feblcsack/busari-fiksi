@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Search, SlidersHorizontal, X, Package } from "lucide-react"
 import { PublicProduct } from "@/actions/public-product"
-import Image from "next/image"
 import { ProductDetailModal } from "@/components/products/product-detail-modal"
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { formatPrice } from "@/lib/utils"
@@ -18,8 +17,8 @@ function ProductCard({ product, onClick }: { product: PublicProduct; onClick: ()
       onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#D5C3B0")}>
       <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4/5", background: "#F3E0CC" }}>
         {product.image_url ? (
-          <Image src={product.image_url} alt={product.name} fill unoptimized
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+          <img src={product.image_url} alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Package className="w-8 h-8" style={{ color: "#D5C3B0" }} />
@@ -145,7 +144,7 @@ export function ShopClient({ initialProducts, profile }: ShopClientProps) {
         )}
       </div>
 
-      {selected && <ProductDetailModal key={selected.id} product={selected} onClose={() => setSelected(null)} />}
+      <ProductDetailModal product={selected} onClose={() => setSelected(null)} />
       <BottomNav profile={profile} />
     </div>
   )

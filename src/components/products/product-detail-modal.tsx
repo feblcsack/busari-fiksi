@@ -1,13 +1,12 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useMemo, useState, useTransition, useCallback, useId } from "react"
 import { X, Star, Package, Send, MessageCircle, BadgeCheck } from "lucide-react"
 import { PublicProduct, ProductReview, getProductReviews, submitReview } from "../../actions/public-product"
 import { formatPrice } from "@/lib/utils"
 
 interface ProductDetailModalProps {
-  product: PublicProduct
+  product: PublicProduct | null
   onClose: () => void
 }
 
@@ -43,7 +42,7 @@ function StarRating({ value, onChange, readonly = false, size = "md" }:
 
 export function ProductDetailModal({ product, onClose }: ProductDetailModalProps) {
   const [reviews, setReviews] = useState<ProductReview[]>([])
-  const [loadingReviews, setLoadingReviews] = useState(true)
+  const [loadingReviews, setLoadingReviews] = useState(false)
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -75,20 +74,22 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
   }, [product, handleClose])
 
   useEffect(() => {
+    if (!product) return
+    setLoadingReviews(true)
+    setSubmitSuccess(false)
+    setSubmitError(null)
+    setComment("")
+    setRating(5)
+    setImageFailed(false)
+    setIsClosing(false)
     let cancelled = false
-    getProductReviews(product.id)
-      .then((data) => {
-        if (cancelled) return
-        setReviews(data)
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingReviews(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [product.id])
+    getProductReviews(product.id).then((data) => {
+      if (cancelled) return
+      setReviews(data)
+      setLoadingReviews(false)
+    })
+    return () => { cancelled = true }
+  }, [product])
 
   const avgRating = useMemo(() => {
     if (reviews.length === 0) return 0
@@ -147,7 +148,7 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
           {/* Image */}
           <div className="relative w-full flex items-center justify-center p-4" style={{ height: "280px", background: "#F3E0CC" }}>
             {product.image_url && !imageFailed ? (
-              <Image src={product.image_url} alt={product.name} fill unoptimized style={{ objectFit: "contain" }} onError={() => setImageFailed(true)} />
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-contain" onError={() => setImageFailed(true)} />
             ) : (
               <Package className="w-16 h-16" style={{ color: "#D5C3B0" }} aria-hidden="true" />
             )}

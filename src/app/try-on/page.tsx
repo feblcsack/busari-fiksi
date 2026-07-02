@@ -37,7 +37,7 @@ export default function TryOnPage() {
       } else {
         setErrorMessage(res.error || "Gagal memproses gambar.")
       }
-    } catch {
+    } catch (error) {
       setErrorMessage("Terjadi kesalahan jaringan.")
     } finally {
       setIsProcessing(false)

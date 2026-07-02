@@ -2,22 +2,17 @@ import { adminGetStats, adminGetAllProducts, adminGetAllUsers } from "@/actions/
 import { formatPrice } from "@/lib/utils"
 import { Activity, AlertCircle, CheckCircle2, Package, Users, TrendingUp, Clock, Image as ImageIcon, FileText } from "lucide-react"
 
-const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
-
-function isRecentProduct(created_at: string, threshold: number) {
-  return new Date(created_at).getTime() >= threshold
-}
-
 export default async function AdminDiagnosticsPage() {
   const [stats, products, users] = await Promise.all([adminGetStats(), adminGetAllProducts(), adminGetAllUsers()])
-  // eslint-disable-next-line react-hooks/purity
-  const recentThreshold = Date.now() - RECENT_WINDOW_MS
 
   const noImageProducts = products.filter((p) => !p.image_url)
   const noDescProducts = products.filter((p) => !p.description)
   const noNameProducts = products.filter((p) => !p.name || p.name.trim() === "")
   const zeroOrNegativePrice = products.filter((p) => p.price <= 0)
-  const recentProducts = products.filter((p) => isRecentProduct(p.created_at, recentThreshold))
+  const recentProducts = products.filter((p) => {
+    const d = new Date(p.created_at)
+    return (Date.now() - d.getTime()) < 7 * 24 * 60 * 60 * 1000
+  })
   const avgPrice = products.length > 0 ? Math.round(products.reduce((sum, p) => sum + p.price, 0) / products.length) : 0
   const maxPrice = products.length > 0 ? Math.max(...products.map((p) => p.price)) : 0
   const minPrice = products.length > 0 ? Math.min(...products.map((p) => p.price)) : 0

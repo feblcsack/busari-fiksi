@@ -2,9 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
 import { LayoutDashboard, Package, Users, Star, Activity, LogOut, Shield } from "lucide-react"
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { signOut } from "@/actions/auth"
 import { Profile } from "@/types"
@@ -74,7 +72,7 @@ export function AdminSidebar({ profile }: AdminSidebarProps) {
         <div className="px-3 py-4" style={{ borderTop: "1px solid rgba(107,78,42,0.08)" }}>
           <div className="flex items-center gap-3 px-3 py-3 rounded-xl mb-2" style={{ background: "rgba(107,78,42,0.04)" }}>
             {profile?.avatar_url ? (
-              <Image src={profile.avatar_url} alt="" width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover shrink-0" />
+              <img src={profile.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
             ) : (
               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
                 style={{ background: "rgba(107,78,42,0.12)", color: "#6B4E2A" }}>

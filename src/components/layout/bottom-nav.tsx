@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, ShoppingBag, Sparkles, LayoutDashboard, Package, LogOut, ChevronUp, Settings, User } from "lucide-react"
@@ -29,7 +28,6 @@ export function BottomNav({ profile }: BottomNavProps) {
   const pathname = usePathname()
   const [accountOpen, setAccountOpen] = useState(false)
   const dropupRef = useRef<HTMLDivElement>(null)
-  const previousPathnameRef = useRef(pathname)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -39,11 +37,7 @@ export function BottomNav({ profile }: BottomNavProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [accountOpen])
 
-  useEffect(() => {
-    previousPathnameRef.current = pathname
-  }, [pathname])
-
-  const isDropdownVisible = accountOpen && previousPathnameRef.current === pathname
+  useEffect(() => { setAccountOpen(false) }, [pathname])
 
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -95,8 +89,7 @@ export function BottomNav({ profile }: BottomNavProps) {
                 isAccountActive || accountOpen ? "text-[#6B4E2A]" : "text-[#867462] hover:text-[#201A14]")}>
               <div className="relative">
                 {profile?.avatar_url ? (
-                  <Image src={profile.avatar_url} alt={profile.full_name ?? "avatar"}
-                    width={20} height={20} unoptimized
+                  <img src={profile.avatar_url} alt={profile.full_name ?? "avatar"}
                     className="w-5 h-5 rounded-full object-cover"
                     style={isAccountActive || accountOpen ? { outline: "1.5px solid #6B4E2A", outlineOffset: "1px" } : {}} />
                 ) : (

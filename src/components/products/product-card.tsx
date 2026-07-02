@@ -1,7 +1,5 @@
 "use client"
 
-import Image from "next/image"
-import Image from "next/image"
 import { useState } from "react"
 import { Pencil, Trash2, Package } from "lucide-react"
 import { formatPrice, formatDate } from "@/lib/utils"
@@ -44,8 +42,8 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
         <div className="relative w-full flex items-center justify-center overflow-hidden"
           style={{ aspectRatio: "1/1", background: "#F3E0CC" }}>
           {showImage ? (
-            <Image src={product.image_url!} alt={product.name} fill unoptimized
-              className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+            <img src={product.image_url!} alt={product.name}
+              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               onError={() => setImgError(true)} />
           ) : (
             <Package className="w-10 h-10" style={{ color: "#D5C3B0" }} strokeWidth={1.2} />
