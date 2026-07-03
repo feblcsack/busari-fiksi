@@ -24,18 +24,13 @@ async function requireAdmin() {
 }
 
 // ── GET ALL PRODUCTS (admin view, all users) ──────────────────────────────
+// ── GET ALL PRODUCTS (admin view, all users) ──────────────────────────────
 export async function adminGetAllProducts(): Promise<(Product & { seller_name?: string | null; seller_email?: string | null })[]> {
   const { supabase } = await requireAdmin()
 
-  const { data, error } = await supabase
+  const { data: products, error } = await supabase
     .from("products")
-    .select(`
-      *,
-      profiles:user_id (
-        full_name,
-        email
-      )
-    `)
+    .select("*")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -43,16 +38,28 @@ export async function adminGetAllProducts(): Promise<(Product & { seller_name?: 
     return []
   }
 
-  return (data || []).map((p: Record<string, unknown>) => {
-    const profiles = p.profiles as { full_name?: string | null; email?: string | null } | null
-    const { profiles: _ignored, ...rest } = p
-    void _ignored
-    return {
-      ...(rest as unknown as Product),
-      seller_name: profiles?.full_name ?? null,
-      seller_email: profiles?.email ?? null,
-    }
-  })
+  if (!products || products.length === 0) return []
+
+  // Ambil semua profiles yang relevan secara terpisah (hindari join yang rawan gagal)
+  const userIds = [...new Set(products.map((p) => p.user_id))]
+  const { data: profiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", userIds)
+
+  if (profilesError) {
+    console.error("adminGetAllProducts profiles error:", profilesError.message)
+  }
+
+  const profileMap = new Map(
+    (profiles || []).map((p) => [p.id, { full_name: p.full_name, email: p.email }])
+  )
+
+  return products.map((p) => ({
+    ...p,
+    seller_name: profileMap.get(p.user_id)?.full_name ?? null,
+    seller_email: profileMap.get(p.user_id)?.email ?? null,
+  }))
 }
 
 // ── GET ALL USERS ─────────────────────────────────────────────────────────
