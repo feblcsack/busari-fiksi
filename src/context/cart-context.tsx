@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useOptimistic,
   useState,
   useTransition,
   useCallback,
@@ -34,46 +33,27 @@ interface CartContextValue {
   clearAllItems: () => void
 }
 
-type OptimisticAction =
-  | { type: "ADD"; item: CartItem }
-  | { type: "REMOVE"; productId: string }
-  | { type: "UPDATE_QTY"; productId: string; quantity: number }
-  | { type: "CLEAR" }
-  | { type: "SYNC"; items: CartItem[] }
+// ── Pure reducer ──────────────────────────────────────────────────────────
 
-// ── Reducer ───────────────────────────────────────────────────────────────
-
-function cartReducer(state: CartItem[], action: OptimisticAction): CartItem[] {
-  switch (action.type) {
-    case "SYNC":
-      return action.items
-    case "ADD": {
-      const existing = state.findIndex((i) => i.product_id === action.item.product_id)
-      if (existing >= 0) {
-        return state.map((item, idx) =>
-          idx === existing
-            ? { ...item, quantity: item.quantity + action.item.quantity }
-            : item
-        )
-      }
-      return [...state, action.item]
-    }
-    case "REMOVE":
-      return state.filter((i) => i.product_id !== action.productId)
-    case "UPDATE_QTY":
-      if (action.quantity <= 0) {
-        return state.filter((i) => i.product_id !== action.productId)
-      }
-      return state.map((item) =>
-        item.product_id === action.productId
-          ? { ...item, quantity: action.quantity }
-          : item
-      )
-    case "CLEAR":
-      return []
-    default:
-      return state
+function applyAdd(items: CartItem[], newItem: CartItem): CartItem[] {
+  const idx = items.findIndex((i) => i.product_id === newItem.product_id)
+  if (idx >= 0) {
+    return items.map((item, i) =>
+      i === idx ? { ...item, quantity: item.quantity + newItem.quantity } : item
+    )
   }
+  return [...items, newItem]
+}
+
+function applyRemove(items: CartItem[], productId: string): CartItem[] {
+  return items.filter((i) => i.product_id !== productId)
+}
+
+function applyUpdateQty(items: CartItem[], productId: string, quantity: number): CartItem[] {
+  if (quantity <= 0) return applyRemove(items, productId)
+  return items.map((item) =>
+    item.product_id === productId ? { ...item, quantity } : item
+  )
 }
 
 // ── Context ───────────────────────────────────────────────────────────────
@@ -86,28 +66,31 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children, initialItems = [] }: CartProviderProps) {
-  const [serverItems, setServerItems] = useState<CartItem[]>(initialItems)
-  const [optimisticItems, dispatchOptimistic] = useOptimistic(serverItems, cartReducer)
+  // Single source of truth — plain useState, no useOptimistic conflicts
+  const [items, setItems] = useState<CartItem[]>(initialItems)
   const [isPending, startTransition] = useTransition()
 
-  // Sync server state from initial items prop whenever it changes (e.g. page refresh)
+  // Re-sync if initialItems prop changes (e.g. after server rerender)
   useEffect(() => {
-    setServerItems(initialItems)
-  }, [initialItems]) // eslint-disable-line react-hooks/exhaustive-deps
+    setItems(initialItems)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialItems)])
 
+  // ── addItem ──────────────────────────────────────────────────────────────
   const addItem = useCallback(
     async (
       productId: string,
       productData: { name: string; price: number; image_url: string | null; stock?: number | null }
     ): Promise<{ success: boolean; error?: string }> => {
-      // Client-side stock check before optimistic update
-      const existing = serverItems.find((i) => i.product_id === productId)
+      // Client-side stock guard
+      const existing = items.find((i) => i.product_id === productId)
       const currentQty = existing?.quantity ?? 0
       const stock = productData.stock
       if (stock !== null && stock !== undefined && currentQty + 1 > stock) {
-        return { success: false, error: `Stok tidak mencukupi.` }
+        return { success: false, error: "Stok tidak mencukupi." }
       }
 
+      // Optimistic update immediately
       const optimisticItem: CartItem = {
         product_id: productId,
         quantity: 1,
@@ -115,95 +98,81 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
         name: productData.name,
         image_url: productData.image_url,
       }
+      const optimisticState = applyAdd(items, optimisticItem)
+      setItems(optimisticState)
 
-      let serverResult: { success: boolean; error?: string } = { success: true }
-
-      startTransition(async () => {
-        // Optimistic update happens immediately inside startTransition
-        dispatchOptimistic({ type: "ADD", item: optimisticItem })
-
-        // Sync to server
+      // Fire server call
+      try {
         const result = await serverAddToCart(productId, 1)
         if (result.success) {
-          setServerItems(result.items)
-          dispatchOptimistic({ type: "SYNC", items: result.items })
+          setItems(result.items)
+          return { success: true }
         } else {
-          // Rollback by re-syncing server state
-          dispatchOptimistic({ type: "SYNC", items: serverItems })
+          // Rollback
+          setItems(items)
+          return { success: false, error: result.error }
         }
-        serverResult = result
-      })
-
-      // Return early optimistic success for immediate UI feedback
-      // (the transition handles the real server call)
-      return serverResult
+      } catch (err) {
+        // Rollback on network error
+        setItems(items)
+        return { success: false, error: err instanceof Error ? err.message : "Gagal menambahkan ke keranjang" }
+      }
     },
-    [serverItems, dispatchOptimistic, startTransition]
+    [items]
   )
 
+  // ── removeItem ───────────────────────────────────────────────────────────
   const removeItem = useCallback(
     (productId: string) => {
+      const optimistic = applyRemove(items, productId)
+      setItems(optimistic)
       startTransition(async () => {
-        dispatchOptimistic({ type: "REMOVE", productId })
         const result = await serverRemoveFromCart(productId)
         if (result.success) {
-          setServerItems(result.items)
-          dispatchOptimistic({ type: "SYNC", items: result.items })
+          setItems(result.items)
         } else {
-          dispatchOptimistic({ type: "SYNC", items: serverItems })
+          setItems(items) // rollback
         }
       })
     },
-    [serverItems, dispatchOptimistic, startTransition]
+    [items, startTransition]
   )
 
+  // ── updateQuantity ───────────────────────────────────────────────────────
   const updateQuantity = useCallback(
     (productId: string, quantity: number) => {
+      const optimistic = applyUpdateQty(items, productId, quantity)
+      setItems(optimistic)
       startTransition(async () => {
-        dispatchOptimistic({ type: "UPDATE_QTY", productId, quantity })
         const result = await serverUpdateQty(productId, quantity)
         if (result.success) {
-          setServerItems(result.items)
-          dispatchOptimistic({ type: "SYNC", items: result.items })
+          setItems(result.items)
         } else {
-          dispatchOptimistic({ type: "SYNC", items: serverItems })
+          setItems(items) // rollback
         }
       })
     },
-    [serverItems, dispatchOptimistic, startTransition]
+    [items, startTransition]
   )
 
+  // ── clearAllItems ─────────────────────────────────────────────────────────
   const clearAllItems = useCallback(() => {
+    const prev = items
+    setItems([])
     startTransition(async () => {
-      dispatchOptimistic({ type: "CLEAR" })
       const result = await serverClearCart()
-      if (result.success) {
-        setServerItems([])
-        dispatchOptimistic({ type: "SYNC", items: [] })
-      } else {
-        dispatchOptimistic({ type: "SYNC", items: serverItems })
+      if (!result.success) {
+        setItems(prev) // rollback
       }
     })
-  }, [serverItems, dispatchOptimistic, startTransition])
+  }, [items, startTransition])
 
-  const totalItems = optimisticItems.reduce((sum, i) => sum + i.quantity, 0)
-  const totalPrice = optimisticItems.reduce(
-    (sum, i) => sum + i.price_at_addition * i.quantity,
-    0
-  )
+  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
+  const totalPrice = items.reduce((sum, i) => sum + i.price_at_addition * i.quantity, 0)
 
   return (
     <CartContext.Provider
-      value={{
-        items: optimisticItems,
-        totalItems,
-        totalPrice,
-        isPending,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearAllItems,
-      }}
+      value={{ items, totalItems, totalPrice, isPending, addItem, removeItem, updateQuantity, clearAllItems }}
     >
       {children}
     </CartContext.Provider>

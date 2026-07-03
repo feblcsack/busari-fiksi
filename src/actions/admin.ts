@@ -102,10 +102,12 @@ export async function adminReviewProduct(productId: string, status: "approved" |
 
   if (error) throw new Error(error.message)
 
-  revalidatePath("/admin")
+  revalidatePath("/admin", "layout")
   revalidatePath("/admin/products")
   revalidatePath("/admin/reviews")
+  revalidatePath("/admin/product-reviews")
   revalidatePath("/shop")
+  revalidatePath("/dashboard", "layout")
   return { success: true }
 }
 

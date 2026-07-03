@@ -205,21 +205,26 @@ export function AdminReviewsClient({ pendingProducts, reviewedProducts }: AdminR
   const [reviewingId, setReviewingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"pending" | "reviewed">("pending")
   const [search, setSearch] = useState("")
-  const [, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
   const handleReview = (id: string, status: "approved" | "rejected", note?: string) => {
+    if (reviewingId) return // jangan double-click
     setReviewingId(id)
+
     startTransition(async () => {
       try {
         await adminReviewProduct(id, status, note)
         showToast(
-          status === "approved" ? "✓ Produk disetujui dan kini tampil di toko" : "Produk ditolak dengan catatan",
+          status === "approved"
+            ? "✓ Produk disetujui dan kini tampil di toko"
+            : "Produk ditolak — catatan sudah dikirim ke seller",
           "success"
         )
         router.refresh()
-      } catch {
-        showToast("Gagal mengubah status", "error")
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Gagal mengubah status"
+        showToast(msg, "error")
       } finally {
         setReviewingId(null)
       }
@@ -278,6 +283,15 @@ export function AdminReviewsClient({ pendingProducts, reviewedProducts }: AdminR
             </button>
           )}
         </div>
+
+        {/* Loading indicator */}
+        {isPending && (
+          <div className="flex items-center gap-2 text-xs" style={{ color: "#6B4E2A" }}>
+            <span className="w-3.5 h-3.5 rounded-full border-2 animate-spin inline-block"
+              style={{ borderTopColor: "#6B4E2A", borderColor: "#D5C3B0" }} />
+            Memperbarui...
+          </div>
+        )}
       </div>
 
       {/* ── Empty state ── */}

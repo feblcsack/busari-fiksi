@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { ShoppingCart, Check, AlertCircle } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import { PublicProduct } from "@/actions/public-product"
@@ -16,22 +16,20 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
   const { addItem } = useCart()
   const [state, setState] = useState<ButtonState>("idle")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [, startTransition] = useTransition()
 
-  // Only active if product is approved and has stock (or stock not tracked)
   const stock = product.stock
   const isApproved = product.status === "approved" || product.status == null
   const hasStock = stock === null || stock === undefined || stock > 0
   const isDisabled = !isApproved || !hasStock || state === "loading"
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation() // Don't open product detail modal
-    if (isDisabled) return
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation() // jangan buka product detail modal
+    if (state === "loading" || isDisabled) return
 
     setState("loading")
     setErrorMsg(null)
 
-    startTransition(async () => {
+    try {
       const result = await addItem(product.id, {
         name: product.name,
         price: product.price,
@@ -47,52 +45,74 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
         setErrorMsg(result.error ?? "Gagal menambahkan")
         setTimeout(() => { setState("idle"); setErrorMsg(null) }, 2500)
       }
-    })
+    } catch {
+      setState("error")
+      setErrorMsg("Terjadi kesalahan, coba lagi")
+      setTimeout(() => { setState("idle"); setErrorMsg(null) }, 2500)
+    }
   }
 
-  const config: Record<ButtonState, { icon: React.ReactNode; label: string; style: React.CSSProperties }> = {
-    idle: {
-      icon: <ShoppingCart className="w-3.5 h-3.5" strokeWidth={2} />,
-      label: hasStock ? "Tambah ke Keranjang" : "Stok Habis",
-      style: {
-        background: isDisabled ? "rgba(107,78,42,0.05)" : "rgba(107,78,42,0.1)",
-        color: isDisabled ? "#D5C3B0" : "#6B4E2A",
-        border: `1px solid ${isDisabled ? "rgba(107,78,42,0.1)" : "rgba(107,78,42,0.25)"}`,
-        cursor: isDisabled ? "not-allowed" : "pointer",
-      },
-    },
-    loading: {
-      icon: (
-        <span className="w-3.5 h-3.5 rounded-full border-2 animate-spin inline-block"
-          style={{ borderTopColor: "#6B4E2A", borderColor: "#D5C3B0" }} />
-      ),
-      label: "Menambahkan...",
-      style: { background: "rgba(107,78,42,0.08)", color: "#6B4E2A", border: "1px solid rgba(107,78,42,0.2)" },
-    },
-    success: {
-      icon: <Check className="w-3.5 h-3.5" strokeWidth={2.5} />,
-      label: "Ditambahkan!",
-      style: { background: "rgba(92,96,41,0.1)", color: "#5C6029", border: "1px solid rgba(92,96,41,0.25)" },
-    },
-    error: {
-      icon: <AlertCircle className="w-3.5 h-3.5" strokeWidth={2} />,
-      label: errorMsg ?? "Gagal",
-      style: { background: "rgba(186,26,26,0.08)", color: "#BA1A1A", border: "1px solid rgba(186,26,26,0.2)" },
-    },
-  }
+  // Tentukan tampilan berdasarkan state
+  const isIdle = state === "idle"
+  const isLoading = state === "loading"
+  const isSuccess = state === "success"
+  const isError = state === "error"
 
-  const { icon, label, style } = config[state]
+  let bgColor = "rgba(107,78,42,0.1)"
+  let textColor = "#6B4E2A"
+  let borderColor = "rgba(107,78,42,0.25)"
+  let cursor = "pointer"
+
+  if (isDisabled && isIdle) {
+    bgColor = "rgba(107,78,42,0.05)"
+    textColor = "#D5C3B0"
+    borderColor = "rgba(107,78,42,0.1)"
+    cursor = "not-allowed"
+  } else if (isSuccess) {
+    bgColor = "rgba(92,96,41,0.1)"
+    textColor = "#5C6029"
+    borderColor = "rgba(92,96,41,0.25)"
+  } else if (isError) {
+    bgColor = "rgba(186,26,26,0.08)"
+    textColor = "#BA1A1A"
+    borderColor = "rgba(186,26,26,0.2)"
+  } else if (isLoading) {
+    bgColor = "rgba(107,78,42,0.06)"
+    textColor = "#6B4E2A"
+    borderColor = "rgba(107,78,42,0.15)"
+  }
 
   return (
     <button
       onClick={handleClick}
-      disabled={isDisabled && state === "idle"}
-      aria-label={label}
+      disabled={isDisabled && isIdle}
+      aria-label={
+        isSuccess ? "Ditambahkan ke keranjang" :
+        isError ? (errorMsg ?? "Gagal") :
+        isLoading ? "Menambahkan..." :
+        hasStock ? "Tambah ke Keranjang" : "Stok Habis"
+      }
       className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${className ?? ""}`}
-      style={style}
+      style={{ background: bgColor, color: textColor, border: `1px solid ${borderColor}`, cursor }}
     >
-      {icon}
-      <span className="whitespace-nowrap">{label}</span>
+      {isLoading ? (
+        <span
+          className="w-3.5 h-3.5 rounded-full border-2 animate-spin inline-block shrink-0"
+          style={{ borderTopColor: "#6B4E2A", borderColor: "#D5C3B0" }}
+        />
+      ) : isSuccess ? (
+        <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
+      ) : isError ? (
+        <AlertCircle className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+      ) : (
+        <ShoppingCart className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+      )}
+      <span className="whitespace-nowrap truncate">
+        {isLoading ? "Menambahkan..." :
+         isSuccess ? "Ditambahkan!" :
+         isError ? (errorMsg ?? "Gagal") :
+         hasStock ? "Tambah ke Keranjang" : "Stok Habis"}
+      </span>
     </button>
   )
 }
