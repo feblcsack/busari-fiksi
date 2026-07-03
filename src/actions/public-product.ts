@@ -8,6 +8,8 @@ export interface PublicProduct {
   description: string | null
   price: number
   image_url: string | null
+  stock?: number | null
+  status?: string | null
   created_at: string
   user_id: string
   // joined from profiles table if you have one

@@ -18,7 +18,24 @@ export interface Product {
   image_url: string | null
   status?: string | null
   review_note?: string | null
+  stock?: number | null
   created_at: string
+}
+
+// ── Cart types ────────────────────────────────────────────────────────────
+export interface CartItem {
+  product_id: string
+  quantity: number
+  price_at_addition: number
+  name: string
+  image_url: string | null
+}
+
+export interface Cart {
+  cart_id: string
+  user_id: string
+  items: CartItem[]
+  updated_at: string
 }
 
 export interface ProductFormData {

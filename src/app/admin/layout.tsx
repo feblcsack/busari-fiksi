@@ -73,15 +73,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     )
   }
 
-  // Fetch pending count for sidebar badge
+  // Fetch pending count for sidebar badge (pending OR queued)
   const { count: pendingCount } = await supabase
     .from("products")
     .select("id", { count: "exact", head: true })
-    .eq("status", "pending")
+    .or("status.eq.pending,status.eq.queued,status.is.null")
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#FFF8F3", fontFamily: "Hanken Grotesk, sans-serif" }}>
-      <AdminSidebar profile={profile as Profile} pendingCount={pendingCount} />
+      <AdminSidebar profile={profile as Profile} pendingCount={pendingCount ?? 0} />
       <main className="flex-1 min-w-0 md:ml-64">
         {children}
       </main>

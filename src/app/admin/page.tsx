@@ -49,7 +49,7 @@ export default async function AdminPage() {
 
       {/* ── Urgent banner (if pending reviews exist) ── */}
       {stats.pendingReviews > 0 && (
-        <Link href="/admin/reviews">
+        <Link href="/admin/product-reviews">
           <div className="flex items-center gap-4 px-5 py-4 rounded-2xl mb-6 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-sm"
             style={{ background: "rgba(107,78,42,0.07)", border: "1px solid rgba(107,78,42,0.25)" }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 animate-pulse"
@@ -117,7 +117,7 @@ export default async function AdminPage() {
                 </span>
               )}
             </div>
-            <Link href="/admin/reviews"
+            <Link href="/admin/product-reviews"
               className="flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase transition-opacity hover:opacity-70"
               style={{ color: "#6B4E2A" }}>
               Review Semua <ArrowRight className="w-3 h-3" />
@@ -154,7 +154,7 @@ export default async function AdminPage() {
                     <span className="text-xs font-semibold" style={{ color: "#6B4E2A" }}>
                       {formatPrice(product.price)}
                     </span>
-                    <Link href="/admin/reviews">
+                    <Link href="/admin/product-reviews">
                       <button className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:brightness-95"
                         style={{ background: "#6B4E2A", color: "#FFFFFF" }}>
                         Review
@@ -321,7 +321,7 @@ export default async function AdminPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
         {[
           { href: "/admin/products", label: "Kelola Produk", icon: Package, desc: `${stats.totalProducts} total produk` },
-          { href: "/admin/reviews", label: "Review Produk", icon: Star, desc: `${stats.pendingReviews} menunggu review` },
+          { href: "/admin/product-reviews", label: "Antrean Review", icon: AlertCircle, desc: `${stats.pendingReviews} menunggu review` },
           { href: "/admin/users", label: "Kelola Pengguna", icon: Users, desc: `${users.length} pengguna` },
           { href: "/admin/diagnostics", label: "Diagnostik", icon: AlertCircle, desc: "Kesehatan platform" },
         ].map(({ href, label, icon: Icon, desc }) => (
