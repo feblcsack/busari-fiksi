@@ -29,11 +29,11 @@ export interface ProductReview {
 export async function getPublicProducts(): Promise<PublicProduct[]> {
   const supabase = await createClient()
 
-  // Tampilkan produk yang approved ATAU yang belum punya status (produk lama)
+  // Hanya tampilkan produk yang sudah approved
   const { data, error } = await supabase
     .from("products")
     .select("*")
-    .or("status.eq.approved,status.is.null")
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
 
   if (error) return []

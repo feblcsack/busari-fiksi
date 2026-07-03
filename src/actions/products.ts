@@ -121,7 +121,14 @@ export async function updateProduct(id: string, formData: FormData) {
   const price = parseInt(formData.get("price") as string, 10)
   const imageFile = formData.get("image") as File | null
 
-  const updateData: Partial<Product> = { name, description, price }
+  const updateData: Partial<Product> & { status: string; review_note: null } = {
+    name,
+    description,
+    price,
+    // Setiap kali seller edit, produk kembali ke pending untuk review ulang
+    status: "pending",
+    review_note: null,
+  }
 
   if (imageFile && imageFile.size > 0) {
     // Validate type
@@ -168,6 +175,8 @@ export async function updateProduct(id: string, formData: FormData) {
   // Revalidate secara 'layout'
   revalidatePath("/dashboard", "layout")
   revalidatePath("/dashboard/products")
+  revalidatePath("/admin/product-reviews")
+  revalidatePath("/admin/reviews")
   revalidatePath("/shop")
   return { success: true }
 }
