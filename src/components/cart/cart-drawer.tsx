@@ -194,7 +194,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   .map((i) => `• ${i.name} x${i.quantity} — ${formatPrice(i.price_at_addition * i.quantity)}`)
                   .join("\n")
                 const msg = `Halo, saya ingin memesan:\n\n${itemList}\n\nTotal: ${formatPrice(totalPrice)}\n\nMohon konfirmasi ketersediaan stok.`
-                const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "6281234567890"
+                const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "6281932531119"
                 window.open(
                   `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`,
                   "_blank",
