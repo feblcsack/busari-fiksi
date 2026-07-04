@@ -1,5 +1,11 @@
 import { adminGetAllProducts } from "@/actions/admin"
 import { AdminReviewsClient } from "@/components/admin/admin-reviews-client"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Review Produk — Admin Busari",
+  description: "Review dan approve produk seller sebelum tampil di toko publik.",
+}
 
 export default async function AdminReviewsPage() {
   const products = await adminGetAllProducts()

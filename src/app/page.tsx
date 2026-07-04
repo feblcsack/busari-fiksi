@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LoginButton } from "@/components/auth/login-button";
 import Link from "next/link";
+import { Metadata } from "next";
 import {
   ArrowRight,
   Sparkles,
@@ -10,6 +11,16 @@ import {
   Box,
   MapPin,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Busari — Fashion UMKM Nusantara",
+  description: "Platform fashion artisanal Indonesia. Temukan batik, tenun, dan songket dari pengrajin lokal terbaik Nusantara.",
+  openGraph: {
+    title: "Busari — Fashion UMKM Nusantara",
+    description: "Dari tangan pengrajin Nusantara ke lemarimu. Batik, tenun, songket, dan karya lokal terbaik.",
+    type: "website",
+  },
+}
 
 // Batik Kawung ornament — inline SVG, pure geometric
 function KawungOrnament({ opacity = 0.06 }: { opacity?: number }) {

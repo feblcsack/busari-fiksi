@@ -1,5 +1,11 @@
 import { adminGetAllProducts, adminGetAllUsers } from "@/actions/admin"
 import { AdminProductsClient } from "@/components/admin/admin-products-client"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Semua Produk — Admin Busari",
+  description: "Kelola seluruh produk dari semua seller di platform Busari.",
+}
 
 export default async function AdminProductsPage() {
   const [products, users] = await Promise.all([adminGetAllProducts(), adminGetAllUsers()])

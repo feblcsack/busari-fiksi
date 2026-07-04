@@ -4,8 +4,20 @@ import { ToastContainer } from "@/components/ui/toast";
 import { Libre_Caslon_Text, Hanken_Grotesk } from "next/font/google";
 
 export const metadata: Metadata = {
-  title: "Toko — Kelola Produkmu",
-  description: "Platform e-commerce sederhana untuk mengelola dan menampilkan produkmu secara online.",
+  title: {
+    default: "Busari — Fashion UMKM Nusantara",
+    template: "%s | Busari",
+  },
+  description: "Platform fashion artisanal Indonesia. Temukan batik, tenun, dan songket dari pengrajin UMKM lokal terbaik Nusantara.",
+  keywords: ["UMKM", "batik", "tenun", "songket", "fashion lokal", "pengrajin Indonesia"],
+  authors: [{ name: "Busari" }],
+  creator: "Busari",
+  metadataBase: new URL("https://busari.id"),
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Busari",
+  },
 };
 
 const caslon = Libre_Caslon_Text({ 

@@ -1,6 +1,12 @@
+import { Metadata } from "next"
 import Link from "next/link";
 import { getProfile } from "@/actions/profile";
 import { getProducts } from "@/actions/products";
+
+export const metadata: Metadata = {
+  title: "Dashboard — Busari",
+  description: "Kelola butik UMKM digitalmu. Pantau produk, analitik harga, dan status review produk.",
+}
 import { formatPrice } from "@/lib/utils";
 import {
   Package,

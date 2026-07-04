@@ -8,6 +8,12 @@
 import { adminGetAllProducts } from "@/actions/admin"
 import { AdminReviewsClient } from "@/components/admin/admin-reviews-client"
 import { Clock, CheckCircle2 } from "lucide-react"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Antrean Review — Admin Busari",
+  description: "Daftar produk yang menunggu persetujuan admin untuk ditampilkan di toko publik.",
+}
 
 export default async function AdminProductReviewsPage() {
   const products = await adminGetAllProducts()

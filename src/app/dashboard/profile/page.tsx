@@ -1,11 +1,21 @@
-import { getProfile } from "@/actions/profile";
-import { ProfileClient } from "@/components/profile/profile-client";
-import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next"
+import { createClient } from "@/lib/supabase/server"
+import { ProfileClient } from "@/components/profile/profile-client"
+import { getProfile } from "@/actions/profile"
+
+export const metadata: Metadata = {
+  title: "Profil — Busari",
+  description: "Kelola informasi akun dan profil butik UMKM kamu.",
+}
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const profile = await getProfile();
+  // Fetch user dan profile secara parallel — satu round-trip ke Supabase
+  const [supabase, profile] = await Promise.all([
+    createClient(),
+    getProfile(),
+  ])
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8" style={{ backgroundColor: "#FFF8F3" }}>
@@ -20,5 +30,5 @@ export default async function ProfilePage() {
       </div>
       <ProfileClient profile={profile} userEmail={user?.email ?? null} />
     </div>
-  );
+  )
 }

@@ -1,35 +1,29 @@
-// src/app/shop/page.tsx
-// Server component — fetch products, profile, and initial cart items
-
+import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { getPublicProducts } from "@/actions/public-product"
 import { getCart } from "@/actions/cart"
 import { ShopClient } from "../../components/shop/shop-client"
 import { Profile } from "@/types"
 
+export const metadata: Metadata = {
+  title: "Toko — Busari",
+  description: "Temukan produk fashion UMKM lokal terbaik Indonesia. Batik, tenun, songket, dan karya pengrajin Nusantara.",
+}
+
 export default async function ShopPage() {
-  // Fetch produk, supabase client, dan cart secara parallel
   const [products, supabase] = await Promise.all([
     getPublicProducts(),
     createClient(),
   ])
 
-  // Ambil user — null kalau belum login, tidak redirect
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   let profile: Profile | null = null
   if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
     profile = data
   }
 
-  // Ambil cart items kalau user login
   const initialCartItems = user ? await getCart() : []
 
   return (
