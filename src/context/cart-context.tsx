@@ -42,6 +42,7 @@ interface CartContextValue {
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearAllItems: () => void
+  hydrateFromServer?: (items: CartItem[]) => void
 }
 
 // ── Pure state helpers ────────────────────────────────────────────────────
@@ -79,17 +80,21 @@ interface CartProviderProps {
 export function CartProvider({ children, initialItems = [] }: CartProviderProps) {
   const [items, setItems] = useState<CartItem[]>(initialItems)
   const [isSyncing, setIsSyncing] = useState(false)
-  // Keep a ref to latest items for rollback in async callbacks
   const itemsRef = useRef(items)
   itemsRef.current = items
 
-  // Sync when initialItems changes (e.g. after server rerender or mount)
+  // Sync when initialItems changes
   useEffect(() => {
     setItems(initialItems)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialItems)])
 
-  // ── addItem: SYNCHRONOUS optimistic update, fire-and-forget server sync ──
+  // Public method to hydrate cart from server (used by GlobalCart)
+  const hydrateFromServer = useCallback((serverItems: CartItem[]) => {
+    setItems(serverItems)
+  }, [])
+
+  // ── addItem ──────────────────────────────────────────────────────────────
   const addItem = useCallback(
     (
       productId: string,
@@ -100,12 +105,10 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
       const currentQty = existing?.quantity ?? 0
       const stock = productData.stock
 
-      // Client-side guard — synchronous, instant feedback
       if (stock !== null && stock !== undefined && currentQty + 1 > stock) {
         return { success: false, error: "Stok tidak mencukupi." }
       }
 
-      // Build optimistic item
       const optimisticItem: CartItem = {
         product_id: productId,
         quantity: 1,
@@ -114,30 +117,21 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
         image_url: productData.image_url,
       }
 
-      // ✅ Optimistic update — SYNCHRONOUS, instant UI update
       const nextItems = applyAdd(current, optimisticItem)
       setItems(nextItems)
 
-      // 🔄 Fire-and-forget server sync in background
       setIsSyncing(true)
       serverAddToCart(productId, 1)
         .then((result) => {
-          if (result.success) {
-            setItems(result.items)
-          } else {
-            // Rollback to state before this add
-            setItems(current)
-          }
+          if (result.success) setItems(result.items)
+          else setItems(current)
         })
-        .catch(() => {
-          setItems(current) // rollback on network error
-        })
+        .catch(() => setItems(current))
         .finally(() => setIsSyncing(false))
 
-      // Return success IMMEDIATELY — don't wait for server
       return { success: true }
     },
-    [] // no deps needed — uses ref
+    []
   )
 
   // ── removeItem ────────────────────────────────────────────────────────────
@@ -146,10 +140,7 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
     setItems(applyRemove(current, productId))
     setIsSyncing(true)
     serverRemoveFromCart(productId)
-      .then((result) => {
-        if (result.success) setItems(result.items)
-        else setItems(current)
-      })
+      .then((result) => { if (result.success) setItems(result.items); else setItems(current) })
       .catch(() => setItems(current))
       .finally(() => setIsSyncing(false))
   }, [])
@@ -160,10 +151,7 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
     setItems(applyUpdateQty(current, productId, quantity))
     setIsSyncing(true)
     serverUpdateQty(productId, quantity)
-      .then((result) => {
-        if (result.success) setItems(result.items)
-        else setItems(current)
-      })
+      .then((result) => { if (result.success) setItems(result.items); else setItems(current) })
       .catch(() => setItems(current))
       .finally(() => setIsSyncing(false))
   }, [])
@@ -174,9 +162,7 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
     setItems([])
     setIsSyncing(true)
     serverClearCart()
-      .then((result) => {
-        if (!result.success) setItems(current)
-      })
+      .then((result) => { if (!result.success) setItems(current) })
       .catch(() => setItems(current))
       .finally(() => setIsSyncing(false))
   }, [])
@@ -186,7 +172,7 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
 
   return (
     <CartContext.Provider
-      value={{ items, totalItems, totalPrice, isSyncing, addItem, removeItem, updateQuantity, clearAllItems }}
+      value={{ items, totalItems, totalPrice, isSyncing, addItem, removeItem, updateQuantity, clearAllItems, hydrateFromServer }}
     >
       {children}
     </CartContext.Provider>
@@ -197,4 +183,12 @@ export function useCart(): CartContextValue {
   const ctx = useContext(CartContext)
   if (!ctx) throw new Error("useCart must be used inside <CartProvider>")
   return ctx
+}
+
+/**
+ * Safe version — returns null if no provider.
+ * Dipakai di komponen yang mungkin render sebelum provider mount.
+ */
+export function useCartSafe(): CartContextValue | null {
+  return useContext(CartContext)
 }
