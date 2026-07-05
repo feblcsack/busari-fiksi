@@ -8,7 +8,6 @@ import { BottomNav } from "@/components/layout/bottom-nav"
 import { formatPrice } from "@/lib/utils"
 import { Profile } from "@/types"
 import { CartProvider } from "@/context/cart-context"
-import { CartButton } from "@/components/cart/cart-button"
 import { AddToCartButton } from "@/components/cart/add-to-cart-button"
 import { CartItem } from "@/types"
 
@@ -143,7 +142,7 @@ function ShopInner({ initialProducts, profile }: Omit<ShopClientProps, "initialC
           borderBottom: "1px solid #D5C3B0",
         }}
       >
-        <div className="max-w-6xl mx-auto px-5 md:px-10 pt-10 pb-8 flex items-end justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-5 md:px-10 pt-10 pb-8">
           <div>
             <p
               className="text-xs font-semibold tracking-widest uppercase mb-2"
@@ -165,10 +164,6 @@ function ShopInner({ initialProducts, profile }: Omit<ShopClientProps, "initialC
             <p className="text-sm" style={{ color: "#867462" }}>
               {initialProducts.length} produk dari pengrajin lokal
             </p>
-          </div>
-          {/* Cart button — top right of hero */}
-          <div className="shrink-0">
-            <CartButton />
           </div>
         </div>
       </div>
