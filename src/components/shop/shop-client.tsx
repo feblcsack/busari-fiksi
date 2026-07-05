@@ -7,9 +7,7 @@ import { ProductDetailModal } from "@/components/products/product-detail-modal"
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { formatPrice } from "@/lib/utils"
 import { Profile } from "@/types"
-import { CartProvider } from "@/context/cart-context"
 import { AddToCartButton } from "@/components/cart/add-to-cart-button"
-import { CartItem } from "@/types"
 
 // ── Product Card (shop-facing) ─────────────────────────────────────────────
 
@@ -102,10 +100,9 @@ type SortOption = "newest" | "price_asc" | "price_desc"
 interface ShopClientProps {
   initialProducts: PublicProduct[]
   profile: Profile | null
-  initialCartItems?: CartItem[]
 }
 
-function ShopInner({ initialProducts, profile }: Omit<ShopClientProps, "initialCartItems">) {
+export function ShopClient({ initialProducts, profile }: Omit<ShopClientProps, "initialCartItems">) {
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<SortOption>("newest")
   const [showSort, setShowSort] = useState(false)
@@ -308,13 +305,5 @@ function ShopInner({ initialProducts, profile }: Omit<ShopClientProps, "initialC
       <ProductDetailModal product={selected} onClose={() => setSelected(null)} />
       <BottomNav profile={profile} />
     </div>
-  )
-}
-
-export function ShopClient({ initialProducts, profile, initialCartItems = [] }: ShopClientProps) {
-  return (
-    <CartProvider initialItems={initialCartItems}>
-      <ShopInner initialProducts={initialProducts} profile={profile} />
-    </CartProvider>
   )
 }

@@ -1,7 +1,6 @@
 import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { getPublicProducts } from "@/actions/public-product"
-import { getCart } from "@/actions/cart"
 import { ShopClient } from "../../components/shop/shop-client"
 import { Profile } from "@/types"
 
@@ -24,13 +23,5 @@ export default async function ShopPage() {
     profile = data
   }
 
-  const initialCartItems = user ? await getCart() : []
-
-  return (
-    <ShopClient
-      initialProducts={products}
-      profile={profile}
-      initialCartItems={initialCartItems}
-    />
-  )
+  return <ShopClient initialProducts={products} profile={profile} />
 }

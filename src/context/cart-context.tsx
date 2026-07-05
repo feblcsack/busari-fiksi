@@ -1,12 +1,23 @@
 "use client"
 
+/**
+ * CartContext — single source of truth untuk cart di seluruh app.
+ *
+ * Arsitektur:
+ * - Satu CartProvider dipasang di root layout via GlobalCart
+ * - ShopClient & komponen lain consume context yang sama — tidak ada duplicate provider
+ * - Optimistic update: state diupdate SEBELUM server call selesai
+ * - Fire-and-forget server sync: addItem return success langsung setelah optimistic update
+ * - Rollback otomatis jika server gagal
+ */
+
 import {
   createContext,
   useContext,
   useState,
-  useTransition,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react"
 import { CartItem } from "@/types"
@@ -23,17 +34,17 @@ interface CartContextValue {
   items: CartItem[]
   totalItems: number
   totalPrice: number
-  isPending: boolean
+  isSyncing: boolean
   addItem: (
     productId: string,
     productData: { name: string; price: number; image_url: string | null; stock?: number | null }
-  ) => Promise<{ success: boolean; error?: string }>
+  ) => { success: boolean; error?: string }
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearAllItems: () => void
 }
 
-// ── Pure reducer ──────────────────────────────────────────────────────────
+// ── Pure state helpers ────────────────────────────────────────────────────
 
 function applyAdd(items: CartItem[], newItem: CartItem): CartItem[] {
   const idx = items.findIndex((i) => i.product_id === newItem.product_id)
@@ -66,31 +77,35 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children, initialItems = [] }: CartProviderProps) {
-  // Single source of truth — plain useState, no useOptimistic conflicts
   const [items, setItems] = useState<CartItem[]>(initialItems)
-  const [isPending, startTransition] = useTransition()
+  const [isSyncing, setIsSyncing] = useState(false)
+  // Keep a ref to latest items for rollback in async callbacks
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
-  // Re-sync if initialItems prop changes (e.g. after server rerender)
+  // Sync when initialItems changes (e.g. after server rerender or mount)
   useEffect(() => {
     setItems(initialItems)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialItems)])
 
-  // ── addItem ──────────────────────────────────────────────────────────────
+  // ── addItem: SYNCHRONOUS optimistic update, fire-and-forget server sync ──
   const addItem = useCallback(
-    async (
+    (
       productId: string,
       productData: { name: string; price: number; image_url: string | null; stock?: number | null }
-    ): Promise<{ success: boolean; error?: string }> => {
-      // Client-side stock guard
-      const existing = items.find((i) => i.product_id === productId)
+    ): { success: boolean; error?: string } => {
+      const current = itemsRef.current
+      const existing = current.find((i) => i.product_id === productId)
       const currentQty = existing?.quantity ?? 0
       const stock = productData.stock
+
+      // Client-side guard — synchronous, instant feedback
       if (stock !== null && stock !== undefined && currentQty + 1 > stock) {
         return { success: false, error: "Stok tidak mencukupi." }
       }
 
-      // Optimistic update immediately
+      // Build optimistic item
       const optimisticItem: CartItem = {
         product_id: productId,
         quantity: 1,
@@ -98,81 +113,80 @@ export function CartProvider({ children, initialItems = [] }: CartProviderProps)
         name: productData.name,
         image_url: productData.image_url,
       }
-      const optimisticState = applyAdd(items, optimisticItem)
-      setItems(optimisticState)
 
-      // Fire server call
-      try {
-        const result = await serverAddToCart(productId, 1)
-        if (result.success) {
-          setItems(result.items)
-          return { success: true }
-        } else {
-          // Rollback
-          setItems(items)
-          return { success: false, error: result.error }
-        }
-      } catch (err) {
-        // Rollback on network error
-        setItems(items)
-        return { success: false, error: err instanceof Error ? err.message : "Gagal menambahkan ke keranjang" }
-      }
+      // ✅ Optimistic update — SYNCHRONOUS, instant UI update
+      const nextItems = applyAdd(current, optimisticItem)
+      setItems(nextItems)
+
+      // 🔄 Fire-and-forget server sync in background
+      setIsSyncing(true)
+      serverAddToCart(productId, 1)
+        .then((result) => {
+          if (result.success) {
+            setItems(result.items)
+          } else {
+            // Rollback to state before this add
+            setItems(current)
+          }
+        })
+        .catch(() => {
+          setItems(current) // rollback on network error
+        })
+        .finally(() => setIsSyncing(false))
+
+      // Return success IMMEDIATELY — don't wait for server
+      return { success: true }
     },
-    [items]
+    [] // no deps needed — uses ref
   )
 
-  // ── removeItem ───────────────────────────────────────────────────────────
-  const removeItem = useCallback(
-    (productId: string) => {
-      const optimistic = applyRemove(items, productId)
-      setItems(optimistic)
-      startTransition(async () => {
-        const result = await serverRemoveFromCart(productId)
-        if (result.success) {
-          setItems(result.items)
-        } else {
-          setItems(items) // rollback
-        }
+  // ── removeItem ────────────────────────────────────────────────────────────
+  const removeItem = useCallback((productId: string) => {
+    const current = itemsRef.current
+    setItems(applyRemove(current, productId))
+    setIsSyncing(true)
+    serverRemoveFromCart(productId)
+      .then((result) => {
+        if (result.success) setItems(result.items)
+        else setItems(current)
       })
-    },
-    [items, startTransition]
-  )
+      .catch(() => setItems(current))
+      .finally(() => setIsSyncing(false))
+  }, [])
 
-  // ── updateQuantity ───────────────────────────────────────────────────────
-  const updateQuantity = useCallback(
-    (productId: string, quantity: number) => {
-      const optimistic = applyUpdateQty(items, productId, quantity)
-      setItems(optimistic)
-      startTransition(async () => {
-        const result = await serverUpdateQty(productId, quantity)
-        if (result.success) {
-          setItems(result.items)
-        } else {
-          setItems(items) // rollback
-        }
+  // ── updateQuantity ─────────────────────────────────────────────────────────
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
+    const current = itemsRef.current
+    setItems(applyUpdateQty(current, productId, quantity))
+    setIsSyncing(true)
+    serverUpdateQty(productId, quantity)
+      .then((result) => {
+        if (result.success) setItems(result.items)
+        else setItems(current)
       })
-    },
-    [items, startTransition]
-  )
+      .catch(() => setItems(current))
+      .finally(() => setIsSyncing(false))
+  }, [])
 
-  // ── clearAllItems ─────────────────────────────────────────────────────────
+  // ── clearAllItems ──────────────────────────────────────────────────────────
   const clearAllItems = useCallback(() => {
-    const prev = items
+    const current = itemsRef.current
     setItems([])
-    startTransition(async () => {
-      const result = await serverClearCart()
-      if (!result.success) {
-        setItems(prev) // rollback
-      }
-    })
-  }, [items, startTransition])
+    setIsSyncing(true)
+    serverClearCart()
+      .then((result) => {
+        if (!result.success) setItems(current)
+      })
+      .catch(() => setItems(current))
+      .finally(() => setIsSyncing(false))
+  }, [])
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
   const totalPrice = items.reduce((sum, i) => sum + i.price_at_addition * i.quantity, 0)
 
   return (
     <CartContext.Provider
-      value={{ items, totalItems, totalPrice, isPending, addItem, removeItem, updateQuantity, clearAllItems }}
+      value={{ items, totalItems, totalPrice, isSyncing, addItem, removeItem, updateQuantity, clearAllItems }}
     >
       {children}
     </CartContext.Provider>
