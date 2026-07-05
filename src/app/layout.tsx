@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastContainer } from "@/components/ui/toast";
-import { GlobalCart } from "@/components/cart/global-cart";
+import { CartWrapper } from "@/components/cart/cart-wrapper";
 import { NavProgress } from "@/components/layout/nav-progress";
 import { Libre_Caslon_Text, Hanken_Grotesk } from "next/font/google";
 
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
   },
 };
 
-const caslon = Libre_Caslon_Text({ 
+const caslon = Libre_Caslon_Text({
   weight: ["400", "700"],
   subsets: ["latin"],
-  variable: "--font-caslon"
+  variable: "--font-caslon",
 });
 
-const hanken = Hanken_Grotesk({ 
+const hanken = Hanken_Grotesk({
   subsets: ["latin"],
-  variable: "--font-hanken"
+  variable: "--font-hanken",
 });
 
 export default function RootLayout({
@@ -40,10 +40,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`h-full antialiased ${caslon.variable} ${hanken.variable}`}>
-      <body className="min-h-full flex flex-col" style={{ backgroundColor: "#FFF8F3", color: "#201A14", fontFamily: "var(--font-hanken), Hanken Grotesk, sans-serif" }}>
+      <body
+        className="min-h-full flex flex-col"
+        style={{
+          backgroundColor: "#FFF8F3",
+          color: "#201A14",
+          fontFamily: "var(--font-hanken), Hanken Grotesk, sans-serif",
+        }}
+      >
+        {/* NavProgress di luar CartWrapper — tidak butuh cart context */}
         <NavProgress />
-        {children}
-        <GlobalCart />
+
+        {/*
+          CartWrapper membungkus SEMUA children.
+          CartProvider ada di sini sehingga useCart() tersedia di semua halaman
+          tanpa tergantung urutan render atau lazy mounting.
+        */}
+        <CartWrapper>
+          {children}
+        </CartWrapper>
+
         <ToastContainer />
       </body>
     </html>
