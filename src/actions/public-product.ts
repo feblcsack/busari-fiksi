@@ -29,15 +29,28 @@ export interface ProductReview {
 export async function getPublicProducts(): Promise<PublicProduct[]> {
   const supabase = await createClient()
 
-  // Hanya tampilkan produk yang sudah approved
   const { data, error } = await supabase
     .from("products")
-    .select("*")
+    .select(`
+      *,
+      profiles:user_id (
+        full_name
+      )
+    `)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
 
   if (error) return []
-  return data || []
+
+  return (data || []).map((p: Record<string, unknown>) => {
+    const profiles = p.profiles as { full_name?: string | null } | null
+    const { profiles: _ignored, ...rest } = p
+    void _ignored
+    return {
+      ...(rest as unknown as PublicProduct),
+      seller_name: profiles?.full_name ?? null,
+    }
+  })
 }
 
 export async function getProductReviews(productId: string): Promise<ProductReview[]> {

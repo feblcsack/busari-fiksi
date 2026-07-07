@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { Search, SlidersHorizontal, X, Package } from "lucide-react"
 import { PublicProduct } from "@/actions/public-product"
@@ -70,7 +71,16 @@ function ProductCard({
             className="text-[10px] font-semibold tracking-widest uppercase mb-1.5"
             style={{ color: "#D5C3B0", fontFamily: "Hanken Grotesk, sans-serif" }}
           >
-            UMKM Lokal
+            {product.seller_name ? (
+              <Link
+                href={`/seller/${product.user_id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:underline transition-opacity hover:opacity-70"
+                style={{ color: "#6B4E2A" }}
+              >
+                {product.seller_name}
+              </Link>
+            ) : "UMKM Lokal"}
           </p>
           <p
             className="text-sm leading-snug truncate mb-1"

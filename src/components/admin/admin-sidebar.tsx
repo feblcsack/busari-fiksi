@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, Users, Star, Activity, LogOut, Shield, ClipboardList } from "lucide-react"
+import { LayoutDashboard, Package, Users, Star, Activity, LogOut, Shield, ClipboardList, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "@/actions/auth"
 import { Profile } from "@/types"
@@ -18,6 +18,7 @@ export function AdminSidebar({ profile, pendingCount = 0 }: AdminSidebarProps) {
   const navItems = [
     { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true, badge: 0 },
     { href: "/admin/product-reviews", label: "Antrean Review", icon: ClipboardList, exact: false, badge: pendingCount },
+    { href: "/admin/orders", label: "Kelola Order", icon: ShoppingBag, exact: false, badge: 0 },
     { href: "/admin/products", label: "Semua Produk", icon: Package, exact: false, badge: 0 },
     { href: "/admin/reviews", label: "Review Produk", icon: Star, exact: false, badge: 0 },
     { href: "/admin/users", label: "Pengguna", icon: Users, exact: false, badge: 0 },

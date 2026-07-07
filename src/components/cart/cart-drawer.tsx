@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import { formatPrice } from "@/lib/utils"
-import { createMidtransOrder } from "@/actions/orders"
+import { createMidtransOrder, createWhatsappOrder } from "@/actions/orders"
 import { showToast } from "@/components/ui/toast"
 import { ReceiptModal, ReceiptData } from "@/components/cart/receipt-modal"
 
@@ -56,13 +56,21 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
     void name
   }
 
-  const handleWhatsappCheckout = () => {
+  const handleWhatsappCheckout = async () => {
+    // Create WA order record in DB first (status: pending, admin will complete)
+    const result = await createWhatsappOrder(items)
+
     const itemList = items
       .map((i) => `• ${i.name} x${i.quantity} — ${formatPrice(i.price_at_addition * i.quantity)}`)
       .join("\n")
-    const msg = `Halo, saya ingin memesan:\n\n${itemList}\n\nTotal: ${formatPrice(totalPrice)}\n\nMohon konfirmasi ketersediaan stok.`
+    const orderRef = result.success && result.orderCode ? `\n\nNo. Order: *${result.orderCode}*` : ""
+    const msg = `Halo, saya ingin memesan:\n\n${itemList}\n\nTotal: ${formatPrice(totalPrice)}${orderRef}\n\nMohon konfirmasi ketersediaan stok.`
     const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "6281932531119"
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer")
+
+    if (result.success) {
+      showToast("Order WhatsApp berhasil dibuat! Admin akan mengkonfirmasi.", "success")
+    }
   }
 
   const handleMidtransCheckout = async () => {

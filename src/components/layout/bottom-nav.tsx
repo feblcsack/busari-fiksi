@@ -16,6 +16,7 @@ const navItems = [
 ]
 
 const accountMenuItems = [
+  { href: "/dashboard/orders", label: "Riwayat Pembelian", icon: ShoppingBag },
   { href: "/dashboard/products", label: "Produk Saya", icon: Package },
   { href: "/dashboard/profile", label: "Pengaturan Profil", icon: Settings },
 ]

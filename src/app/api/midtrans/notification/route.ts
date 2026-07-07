@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { verifySignature } from "@/lib/midtrans"
+import { OrderItem } from "@/types"
 
 export async function POST(req: Request) {
   try {
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 })
     }
 
+    // Use service role key to bypass RLS for webhook operations
     const supabase = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -40,15 +42,36 @@ export async function POST(req: Request) {
       newStatus = "cancelled"
     }
 
-    if (newStatus) {
-      const updateData: Record<string, unknown> = {
-        status: newStatus,
-        midtrans_transaction_id: body.transaction_id,
-        midtrans_payment_type: body.payment_type,
-      }
-      if (newStatus === "paid") updateData.paid_at = new Date().toISOString()
+    if (!newStatus) {
+      return NextResponse.json({ received: true })
+    }
 
-      await supabase.from("orders").update(updateData).eq("order_code", body.order_id)
+    // Fetch current order to check previous status
+    const { data: order } = await supabase
+      .from("orders")
+      .select("status, items")
+      .eq("order_code", body.order_id)
+      .single()
+
+    const updateData: Record<string, unknown> = {
+      status: newStatus,
+      midtrans_transaction_id: body.transaction_id,
+      midtrans_payment_type: body.payment_type,
+    }
+    if (newStatus === "paid") updateData.paid_at = new Date().toISOString()
+
+    await supabase.from("orders").update(updateData).eq("order_code", body.order_id)
+
+    // Reduce stock when payment is confirmed (only once — check previous status wasn't already paid)
+    if (newStatus === "paid" && order && order.status !== "paid" && order.status !== "completed") {
+      const items = order.items as OrderItem[]
+      for (const item of items) {
+        // Decrement stock atomically using RPC — only if stock is tracked (not null)
+        await supabase.rpc("decrement_product_stock", {
+          p_product_id: item.product_id,
+          p_quantity: item.quantity,
+        })
+      }
     }
 
     return NextResponse.json({ received: true })
