@@ -177,6 +177,27 @@ export function ProductFormModal({ open, onClose, mode, product }: ProductFormMo
               {errors.price && <p className="text-xs mt-1.5" style={{ color: "#BA1A1A" }}>{errors.price}</p>}
             </div>
 
+            <div>
+              <label className="block text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: "#867462" }}>
+                Stok <span className="normal-case tracking-normal font-normal" style={{ color: "#D5C3B0" }}>(opsional — kosongkan jika tidak dibatasi)</span>
+              </label>
+              <div className="relative">
+                <input
+                  name="stock"
+                  type="number"
+                  min="0"
+                  defaultValue={product?.stock ?? ""}
+                  placeholder="Contoh: 10"
+                  style={inputBase}
+                  onFocus={(e) => { e.target.style.borderColor = "#6B4E2A"; e.target.style.boxShadow = "0 0 0 2px rgba(107,78,42,0.1)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "#D5C3B0"; e.target.style.boxShadow = "none"; }}
+                />
+              </div>
+              <p className="text-[11px] mt-1.5" style={{ color: "#D5C3B0" }}>
+                Stok akan berkurang otomatis setiap kali ada pembelian yang dikonfirmasi.
+              </p>
+            </div>
+
             <div className="flex gap-3 pt-1 pb-1">
               <button type="button" onClick={handleClose} disabled={isPending}
                 className="flex-1 py-2.5 rounded-full text-sm font-semibold transition-all hover:bg-black/5 disabled:opacity-40"

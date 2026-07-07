@@ -52,6 +52,8 @@ export async function createProduct(formData: FormData) {
   const name = formData.get("name") as string
   const description = formData.get("description") as string
   const price = parseInt(formData.get("price") as string, 10)
+  const stockRaw = formData.get("stock") as string
+  const stock = stockRaw && stockRaw.trim() !== "" ? parseInt(stockRaw, 10) : null
   const imageFile = formData.get("image") as File | null
 
   let image_url: string | null = null
@@ -97,6 +99,7 @@ export async function createProduct(formData: FormData) {
     description,
     price,
     image_url,
+    stock: stock ?? null,
     status: "pending", // semua produk baru masuk antrian review admin
   })
 
@@ -119,12 +122,15 @@ export async function updateProduct(id: string, formData: FormData) {
   const name = formData.get("name") as string
   const description = formData.get("description") as string
   const price = parseInt(formData.get("price") as string, 10)
+  const stockRaw = formData.get("stock") as string
+  const stock = stockRaw && stockRaw.trim() !== "" ? parseInt(stockRaw, 10) : null
   const imageFile = formData.get("image") as File | null
 
   const updateData: Partial<Product> & { status: string; review_note: null } = {
     name,
     description,
     price,
+    stock: stock,
     // Setiap kali seller edit, produk kembali ke pending untuk review ulang
     status: "pending",
     review_note: null,
