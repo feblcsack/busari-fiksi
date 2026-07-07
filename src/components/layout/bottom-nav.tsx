@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, ShoppingBag, Sparkles, LayoutDashboard, Package, LogOut, ChevronUp, Settings, User } from "lucide-react"
+import { Home, ShoppingBag, Sparkles, LayoutDashboard, Package, LogOut, ChevronUp, Settings, User, Package2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOut } from "@/actions/auth"
 import { Profile } from "@/types"
@@ -19,6 +19,7 @@ const accountMenuItems = [
   { href: "/dashboard/orders", label: "Riwayat Pembelian", icon: ShoppingBag },
   { href: "/dashboard/products", label: "Produk Saya", icon: Package },
   { href: "/dashboard/profile", label: "Pengaturan Profil", icon: Settings },
+  { href: "/dashboard/orders", label: "Historis Pesanan", icon: Package2Icon },
 ]
 
 interface BottomNavProps {
