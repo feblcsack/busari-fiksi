@@ -163,31 +163,40 @@ export async function adminGetAllOrders(): Promise<(Order & { buyer_name?: strin
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Not authenticated")
 
-  // Check admin
+  // Check admin role
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
   if (profile?.role !== "admin") throw new Error("Unauthorized")
 
-  const { data, error } = await supabase
+  // Use service client to bypass RLS and see all orders
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: orders, error } = await serviceClient
     .from("orders")
-    .select(`
-      *,
-      profiles:user_id (
-        full_name,
-        email
-      )
-    `)
+    .select("*")
     .order("created_at", { ascending: false })
 
-  if (error) return []
+  if (error || !orders || orders.length === 0) return []
 
-  return (data || []).map((o: Record<string, unknown>) => {
-    const profiles = o.profiles as { full_name?: string | null; email?: string | null } | null
-    const { profiles: _ignored, ...rest } = o
-    void _ignored
+  // Fetch buyer profiles separately — avoid FK join dependency
+  const userIds = [...new Set(orders.map((o) => o.user_id as string))]
+  const { data: profiles } = await serviceClient
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", userIds)
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p) => [p.id, { name: p.full_name as string | null, email: p.email as string | null }])
+  )
+
+  return orders.map((o) => {
+    const buyer = profileMap.get(o.user_id as string)
     return {
-      ...(rest as unknown as Order),
-      buyer_name: profiles?.full_name ?? o.customer_name as string ?? null,
-      buyer_email: profiles?.email ?? o.customer_email as string ?? null,
+      ...(o as unknown as Order),
+      buyer_name: buyer?.name ?? (o.customer_name as string | null) ?? null,
+      buyer_email: buyer?.email ?? (o.customer_email as string | null) ?? null,
     }
   })
 }
@@ -201,8 +210,14 @@ export async function adminCompleteOrder(orderId: string): Promise<{ success: bo
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
   if (profile?.role !== "admin") return { success: false, error: "Unauthorized" }
 
-  // Fetch order
-  const { data: order, error: fetchError } = await supabase
+  // Use service client for all order operations — bypass RLS
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Fetch order via service client
+  const { data: order, error: fetchError } = await serviceClient
     .from("orders")
     .select("status, items")
     .eq("id", orderId)
@@ -210,12 +225,6 @@ export async function adminCompleteOrder(orderId: string): Promise<{ success: bo
 
   if (fetchError || !order) return { success: false, error: "Order tidak ditemukan" }
   if (order.status === "completed") return { success: false, error: "Order sudah selesai" }
-
-  // Use service role to bypass RLS for stock update
-  const serviceClient = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
 
   // Update order status
   const { error: updateError } = await serviceClient
@@ -225,8 +234,8 @@ export async function adminCompleteOrder(orderId: string): Promise<{ success: bo
 
   if (updateError) return { success: false, error: updateError.message }
 
-  // Reduce stock for each item (only if not already done for paid midtrans orders)
-  const shouldReduceStock = order.status !== "paid" // paid midtrans already reduced stock via webhook
+  // Reduce stock — only if not already reduced (midtrans paid already triggers webhook)
+  const shouldReduceStock = order.status !== "paid"
   if (shouldReduceStock) {
     const items = order.items as OrderItem[]
     for (const item of items) {
@@ -251,7 +260,12 @@ export async function adminCancelOrder(orderId: string): Promise<{ success: bool
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
   if (profile?.role !== "admin") return { success: false, error: "Unauthorized" }
 
-  const { error } = await supabase
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await serviceClient
     .from("orders")
     .update({ status: "cancelled" })
     .eq("id", orderId)
