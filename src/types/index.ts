@@ -78,6 +78,8 @@ export interface ProfileFormData {
   whatsapp_number?: string
   avatar?: File | null
 }
+
+export interface AdminStats {
   totalUsers: number
   totalProducts: number
   pendingReviews: number
