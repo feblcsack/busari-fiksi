@@ -31,26 +31,25 @@ export async function getPublicProducts(): Promise<PublicProduct[]> {
 
   const { data, error } = await supabase
     .from("products")
-    .select(`
-      *,
-      profiles:user_id (
-        full_name
-      )
-    `)
+    .select("*")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
 
-  if (error) return []
+  if (error || !data || data.length === 0) return []
 
-  return (data || []).map((p: Record<string, unknown>) => {
-    const profiles = p.profiles as { full_name?: string | null } | null
-    const { profiles: _ignored, ...rest } = p
-    void _ignored
-    return {
-      ...(rest as unknown as PublicProduct),
-      seller_name: profiles?.full_name ?? null,
-    }
-  })
+  // Fetch seller names in a separate query — tidak depend pada FK relationship
+  const userIds = [...new Set(data.map((p) => p.user_id as string))]
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", userIds)
+
+  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name as string | null]))
+
+  return data.map((p) => ({
+    ...(p as unknown as PublicProduct),
+    seller_name: profileMap.get(p.user_id as string) ?? null,
+  }))
 }
 
 export async function getProductReviews(productId: string): Promise<ProductReview[]> {
