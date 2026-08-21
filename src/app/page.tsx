@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LoginButton } from "@/components/auth/login-button";
 import { FirstVisitModal } from "@/components/terms/first-visit-modal";
+import { LandingHeroButtons, ViewAllShopButton, ProductActionButtons, TryOnButton } from "@/components/landing/landing-buttons";
 import Link from "next/link";
 import { Metadata } from "next";
 import { BUSINESS_CONTACT_PHONE_DISPLAY, BUSINESS_CONTACT_PHONE_WA } from "@/components/layout/site-footer";
@@ -249,21 +250,7 @@ export default async function Home() {
           </p>
 
           {/* CTA row */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              className="group px-8 py-3.5 rounded-full text-sm font-semibold tracking-wide transition-all hover:brightness-95 active:scale-[0.97] flex items-center gap-2.5"
-              style={{ backgroundColor: "#6B4E2A", color: "#FFFFFF" }}
-            >
-              Jelajahi Koleksi
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
-            <button
-              className="px-8 py-3.5 rounded-full text-sm font-semibold tracking-wide transition-all hover:bg-[#F3E0CC]"
-              style={{ border: "1px solid #D5C3B0", color: "#52432F" }}
-            >
-              Kenali UMKM Kami
-            </button>
-          </div>
+          <LandingHeroButtons />
         </div>
 
         {/* Scroll indicator */}
@@ -413,7 +400,7 @@ export default async function Home() {
       <ParangDivider />
 
       {/* ══ UMKM STORY — TERRACOTTA CTA ══ */}
-      <section className="max-w-7xl mx-auto px-6 py-16 w-full">
+      <section id="umkm-section" className="max-w-7xl mx-auto px-6 py-16 w-full">
         <div className="grid md:grid-cols-2 gap-6">
 
           {/* Quote card */}
@@ -543,13 +530,7 @@ export default async function Home() {
               Koleksi Pilihan
             </h2>
           </div>
-          <Link
-            href="/shop"
-            className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors hover:text-[#261200]"
-            style={{ color: "#6B4E2A" }}
-          >
-            Lihat Semua <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <ViewAllShopButton />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -608,20 +589,7 @@ export default async function Home() {
                 <p className="text-sm mb-4 font-semibold" style={{ color: "#6B4E2A" }}>
                   {item.price}
                 </p>
-                <div className="flex gap-2">
-                  <button
-                    className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase rounded-lg transition-colors hover:bg-[#F3E0CC]"
-                    style={{ border: "1px solid #D5C3B0", color: "#52432F" }}
-                  >
-                    Coba
-                  </button>
-                  <button
-                    className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase rounded-lg transition-all hover:brightness-95"
-                    style={{ backgroundColor: "#6B4E2A", color: "#FFFFFF" }}
-                  >
-                    Tambah
-                  </button>
-                </div>
+                <ProductActionButtons />
               </div>
             </div>
           ))}
@@ -678,13 +646,7 @@ export default async function Home() {
             <p className="text-sm leading-relaxed mb-8" style={{ color: "#52432F" }}>
               Teknologi Virtual Try-On kami memungkinkan kamu melihat bagaimana karya pengrajin Nusantara terlihat di tubuhmu — akurat, privat, dan tanpa repot.
             </p>
-            <button
-              className="flex items-center gap-2.5 px-7 py-3 rounded-full text-sm font-semibold tracking-wide transition-all hover:bg-[#FFDDB8]"
-              style={{ border: "1px solid #867462", color: "#261200" }}
-            >
-              <Sparkles className="w-4 h-4" style={{ color: "#6B4E2A" }} strokeWidth={1.5} />
-              Mulai Virtual Try-On
-            </button>
+            <TryOnButton />
           </div>
         </div>
       </section>

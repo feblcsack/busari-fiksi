@@ -176,3 +176,15 @@ html {
 .slide-in-from-bottom-2 {
   animation: slide-in-from-bottom-2 0.2s ease-out;
 }
+
+/* Fix Midtrans Snap modal z-index for mobile visibility */
+#snap-midtrans,
+.snap-midtrans-modal,
+.snap-midtrans-overlay {
+  z-index: 9999 !important;
+}
+
+/* Ensure Midtrans iframe is visible on mobile */
+iframe[name^="snap-midtrans"] {
+  z-index: 9999 !important;
+}
