@@ -11,6 +11,9 @@ import { formatPrice } from "@/lib/utils"
 import { createMidtransOrder, createWhatsappOrder } from "@/actions/orders"
 import { showToast } from "@/components/ui/toast"
 import { ReceiptModal, ReceiptData } from "@/components/cart/receipt-modal"
+import { TermsModal } from "@/components/terms/terms-modal"
+import { hasAcceptedTerms } from "@/hooks/use-terms-modal"
+import { MIDTRANS_SNAP_JS_URL } from "@/lib/midtrans-client"
 
 interface CartDrawerProps {
   open: boolean
@@ -24,6 +27,9 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const [receipt, setReceipt] = useState<ReceiptData | null>(null)
   const [visible, setVisible] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [snapReady, setSnapReady] = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [checkoutMethod, setCheckoutMethod] = useState<"midtrans" | "whatsapp" | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Animate in/out
@@ -57,6 +63,17 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   }
 
   const handleWhatsappCheckout = async () => {
+    // Check if terms accepted first
+    if (!hasAcceptedTerms()) {
+      setCheckoutMethod("whatsapp")
+      setShowTermsModal(true)
+      return
+    }
+    
+    await proceedWithWhatsappCheckout()
+  }
+
+  const proceedWithWhatsappCheckout = async () => {
     // Create WA order record in DB first (status: pending, admin will complete)
     const result = await createWhatsappOrder(items)
 
@@ -75,6 +92,28 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
 
   const handleMidtransCheckout = async () => {
     if (paying) return
+
+    // Check if terms accepted first
+    if (!hasAcceptedTerms()) {
+      setCheckoutMethod("midtrans")
+      setShowTermsModal(true)
+      return
+    }
+
+    await proceedWithMidtransCheckout()
+  }
+
+  const proceedWithMidtransCheckout = async () => {
+    if (paying) return
+
+    // Guard: Snap.js may still be loading, or may have failed to load
+    // (ad-blocker, network issue, wrong client key domain whitelist, etc).
+    // Without this check, window.snap.pay() would throw a raw TypeError.
+    if (!snapReady || typeof window === "undefined" || !window.snap) {
+      showToast("Modul pembayaran sedang dimuat, coba lagi dalam beberapa detik", "error")
+      return
+    }
+
     setPaying(true)
 
     const result = await createMidtransOrder(items)
@@ -120,9 +159,14 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   return (
     <>
       <Script
-        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        src={MIDTRANS_SNAP_JS_URL}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
         strategy="lazyOnload"
+        onLoad={() => setSnapReady(true)}
+        onError={() => {
+          setSnapReady(false)
+          showToast("Gagal memuat modul pembayaran Midtrans. Cek koneksi internet Anda.", "error")
+        }}
       />
 
       {/* Overlay */}
@@ -364,6 +408,26 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
       </div>
 
       <ReceiptModal data={receipt} onClose={() => setReceipt(null)} />
+
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => {
+          setShowTermsModal(false)
+          setCheckoutMethod(null)
+        }}
+        onAccept={async () => {
+          setShowTermsModal(false)
+          if (checkoutMethod === "midtrans") {
+            await proceedWithMidtransCheckout()
+          } else if (checkoutMethod === "whatsapp") {
+            await proceedWithWhatsappCheckout()
+          }
+          setCheckoutMethod(null)
+        }}
+        mode="consent"
+        title="Konfirmasi Pemesanan"
+        description="Dengan melanjutkan, Anda setuju dengan syarat dan ketentuan kami."
+      />
     </>
   )
 }

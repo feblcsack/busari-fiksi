@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LoginButton } from "@/components/auth/login-button";
+import { FirstVisitModal } from "@/components/terms/first-visit-modal";
 import Link from "next/link";
 import { Metadata } from "next";
+import { BUSINESS_CONTACT_PHONE_DISPLAY, BUSINESS_CONTACT_PHONE_WA } from "@/components/layout/site-footer";
 import {
   ArrowRight,
   Sparkles,
@@ -147,6 +149,7 @@ export default async function Home() {
       className="min-h-screen flex flex-col selection:bg-[#FFDDB8] selection:text-[#261200]"
       style={{ backgroundColor: "#FFF8F3", color: "#201A14", fontFamily: "Hanken Grotesk, sans-serif" }}
     >
+      <FirstVisitModal />
 
       {/* ══ NAVIGATION ══ */}
       <header
@@ -735,13 +738,23 @@ export default async function Home() {
             </div>
             <div className="flex flex-col gap-3">
               <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "#867462" }}>
-                Bantuan
+                Legal &amp; Bantuan
               </p>
-              {["Pengiriman", "Pengembalian", "Ukuran"].map((l) => (
-                <Link key={l} href="#" className="transition-colors hover:text-[#261200]" style={{ color: "#52432F" }}>
-                  {l}
-                </Link>
-              ))}
+              <Link href="/terms" className="transition-colors hover:text-[#261200]" style={{ color: "#52432F" }}>
+                Syarat &amp; Ketentuan
+              </Link>
+              <Link href="/terms#privasi" className="transition-colors hover:text-[#261200]" style={{ color: "#52432F" }}>
+                Kebijakan Privasi
+              </Link>
+              <a
+                href={`https://wa.me/${BUSINESS_CONTACT_PHONE_WA}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-[#261200]"
+                style={{ color: "#52432F" }}
+              >
+                Hubungi Kami
+              </a>
             </div>
           </div>
         </div>
@@ -752,8 +765,17 @@ export default async function Home() {
           style={{ borderTop: "1px solid #D5C3B0" }}
         >
           <p className="text-[11px]" style={{ color: "#867462" }}>
-            © 2024 BUSARI Artisanal. Hak cipta dilindungi.
+            © {new Date().getFullYear()} BUSARI Artisanal. Hak cipta dilindungi.
           </p>
+          <a
+            href={`https://wa.me/${BUSINESS_CONTACT_PHONE_WA}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] hover:underline"
+            style={{ color: "#6B4E2A" }}
+          >
+            Kontak: {BUSINESS_CONTACT_PHONE_DISPLAY}
+          </a>
         </div>
       </footer>
     </div>

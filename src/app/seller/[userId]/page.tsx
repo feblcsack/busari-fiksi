@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { BottomNav } from "@/components/layout/bottom-nav"
+import { SiteFooter } from "@/components/layout/site-footer"
 import { Profile } from "@/types"
 import { SellerProfileClient } from "@/components/seller/seller-profile-client"
 
@@ -57,6 +58,7 @@ export default async function SellerProfilePage({ params }: Props) {
   return (
     <div className="min-h-screen pb-28" style={{ backgroundColor: "#FFF8F3" }}>
       <SellerProfileClient seller={seller} products={products} />
+      <SiteFooter />
       <BottomNav profile={currentProfile} />
     </div>
   )

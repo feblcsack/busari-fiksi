@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Search, SlidersHorizontal, X, Package } from "lucide-react"
 import { PublicProduct } from "@/actions/public-product"
 import { ProductDetailModal } from "@/components/products/product-detail-modal"
+import { SiteFooter } from "@/components/layout/site-footer"
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { formatPrice } from "@/lib/utils"
 import { Profile } from "@/types"
@@ -313,6 +314,7 @@ export function ShopClient({ initialProducts, profile }: Omit<ShopClientProps, "
       </div>
 
       <ProductDetailModal product={selected} onClose={() => setSelected(null)} />
+      <SiteFooter />
       <BottomNav profile={profile} />
     </div>
   )

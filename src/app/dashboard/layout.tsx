@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { BottomNav } from "@/components/layout/bottom-nav"
+import { SiteFooter } from "@/components/layout/site-footer"
 import { Profile } from "@/types"
 
 export default async function DashboardLayout({
@@ -23,8 +24,9 @@ export default async function DashboardLayout({
     .single()
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FFF8F3" }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF8F3" }}>
       {children}
+      <SiteFooter />
       <BottomNav profile={profile as Profile | null} />
     </div>
   )

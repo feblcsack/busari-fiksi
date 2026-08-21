@@ -5,6 +5,7 @@ import {
   Users, Store, Package, Sparkles, TrendingUp, Shield, Zap,
 } from "lucide-react"
 import { BottomNav } from "../../components/layout/bottom-nav"
+import { SiteFooter } from "@/components/layout/site-footer"
 import { createClient } from "@/lib/supabase/server"
 import { Profile } from "@/types"
 import { HomeHeroButtons } from "@/components/home/home-hero-buttons"
@@ -380,6 +381,7 @@ export default async function HomePage() {
         </div>
       </div>
 
+      <SiteFooter />
       <BottomNav profile={profile} />
     </div>
   )

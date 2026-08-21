@@ -1,9 +1,27 @@
 import { adminGetStats, adminGetAllProducts, adminGetAllUsers } from "@/actions/admin"
 import { formatPrice } from "@/lib/utils"
-import { Activity, AlertCircle, CheckCircle2, Package, Users, TrendingUp, Clock, Image as ImageIcon, FileText } from "lucide-react"
+import { Activity, AlertCircle, CheckCircle2, Package, Users, TrendingUp, Clock, Image as ImageIcon, FileText, CreditCard, ShieldAlert } from "lucide-react"
+import { MIDTRANS_IS_PRODUCTION } from "@/lib/midtrans-client"
+
+// Server-only check, safe here since this page is a Server Component and
+// never bundled to the client. Detects sandbox vs production key by prefix
+// so admin can catch a mismatched key/flag combo at a glance.
+function getMidtransModeInfo() {
+  const serverKey = process.env.MIDTRANS_SERVER_KEY ?? ""
+  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? ""
+  const serverKeyIsSandbox = serverKey.startsWith("SB-")
+  const clientKeyIsSandbox = clientKey.startsWith("SB-")
+  const keysMissing = !serverKey || !clientKey
+  const mismatch =
+    !keysMissing &&
+    (MIDTRANS_IS_PRODUCTION ? serverKeyIsSandbox || clientKeyIsSandbox : !serverKeyIsSandbox || !clientKeyIsSandbox)
+
+  return { keysMissing, mismatch }
+}
 
 export default async function AdminDiagnosticsPage() {
   const [stats, products, users] = await Promise.all([adminGetStats(), adminGetAllProducts(), adminGetAllUsers()])
+  const midtransMode = getMidtransModeInfo()
 
   const noImageProducts = products.filter((p) => !p.image_url)
   const noDescProducts = products.filter((p) => !p.description)
@@ -76,6 +94,61 @@ export default async function AdminDiagnosticsPage() {
               {completenessScore}%
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Payment Mode — Midtrans sandbox vs production indicator */}
+      <div
+        className="rounded-2xl p-5 mb-6 flex items-center gap-4"
+        style={{
+          background: midtransMode.mismatch ? "rgba(186,26,26,0.08)" : MIDTRANS_IS_PRODUCTION ? "rgba(92,96,41,0.08)" : "rgba(107,78,42,0.08)",
+          border: `1px solid ${midtransMode.mismatch ? "rgba(186,26,26,0.3)" : MIDTRANS_IS_PRODUCTION ? "rgba(92,96,41,0.25)" : "rgba(107,78,42,0.2)"}`,
+        }}
+      >
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "rgba(255,255,255,0.5)" }}>
+          {midtransMode.mismatch
+            ? <ShieldAlert className="w-5 h-5" style={{ color: "#BA1A1A" }} strokeWidth={2} />
+            : <CreditCard className="w-5 h-5" style={{ color: MIDTRANS_IS_PRODUCTION ? "#5C6029" : "#6B4E2A" }} strokeWidth={2} />}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-bold" style={{ color: "#201A14" }}>
+              Mode Pembayaran Midtrans:{" "}
+              <span style={{ color: MIDTRANS_IS_PRODUCTION ? "#5C6029" : "#6B4E2A" }}>
+                {MIDTRANS_IS_PRODUCTION ? "PRODUCTION (Live)" : "SANDBOX (Testing)"}
+              </span>
+            </p>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+              style={{
+                background: MIDTRANS_IS_PRODUCTION ? "rgba(92,96,41,0.15)" : "rgba(107,78,42,0.12)",
+                color: MIDTRANS_IS_PRODUCTION ? "#5C6029" : "#6B4E2A",
+              }}
+            >
+              {MIDTRANS_IS_PRODUCTION ? "Uang Asli" : "Simulasi"}
+            </span>
+          </div>
+          {midtransMode.keysMissing && (
+            <p className="text-xs mt-1" style={{ color: "#BA1A1A" }}>
+              ⚠️ MIDTRANS_SERVER_KEY atau NEXT_PUBLIC_MIDTRANS_CLIENT_KEY belum di-set di environment.
+            </p>
+          )}
+          {!midtransMode.keysMissing && midtransMode.mismatch && (
+            <p className="text-xs mt-1" style={{ color: "#BA1A1A" }}>
+              ⚠️ Key yang terpasang tidak cocok dengan mode saat ini (cek awalan &ldquo;SB-&rdquo; pada key vs.
+              NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION). Transaksi akan ditolak oleh server sampai ini diperbaiki.
+            </p>
+          )}
+          {!midtransMode.keysMissing && !midtransMode.mismatch && (
+            <p className="text-xs mt-1" style={{ color: "#867462" }}>
+              Key & flag environment sudah cocok. Untuk beralih mode, ubah{" "}
+              <code className="px-1 rounded" style={{ background: "rgba(0,0,0,0.06)" }}>
+                NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION
+              </code>{" "}
+              di environment variables lalu redeploy.
+            </p>
+          )}
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Profile } from "@/types"
 import { BottomNav } from "@/components/layout/bottom-nav"
+import { SiteFooter } from "@/components/layout/site-footer"
 import { TryOnClient } from "@/components/try-on/try-on-client"
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default async function TryOnPage() {
         <TryOnClient />
       </div>
 
+      <SiteFooter />
       <BottomNav profile={profile} />
     </div>
   )
