@@ -25,16 +25,21 @@ interface CreateSnapParams {
 // flag on (or vice versa). Midtrans prefixes keys with "SB-" for sandbox.
 function assertKeyMatchesEnvironment(serverKey: string) {
   const looksLikeSandboxKey = serverKey.startsWith("SB-")
+  
+  // Strict check: Production mode MUST use production key
   if (MIDTRANS_IS_PRODUCTION && looksLikeSandboxKey) {
     throw new Error(
       "MIDTRANS_SERVER_KEY yang terpasang adalah SANDBOX key, tapi NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION=true. " +
       "Ganti dengan Production Server Key dari dashboard.midtrans.com sebelum menerima pembayaran sungguhan."
     )
   }
+  
+  // Lenient check: Sandbox mode with production key - just warn in console
   if (!MIDTRANS_IS_PRODUCTION && !looksLikeSandboxKey) {
-    throw new Error(
-      "MIDTRANS_SERVER_KEY yang terpasang terlihat seperti Production key, tapi NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION belum 'true'. " +
-      "Set env var tersebut ke 'true' jika memang ingin live, atau pasang sandbox key untuk testing."
+    console.warn(
+      "⚠️ WARNING: MIDTRANS_SERVER_KEY terlihat seperti Production key, tapi NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION='false'. " +
+      "Untuk testing yang lebih aman, gunakan Sandbox key dari dashboard.sandbox.midtrans.com. " +
+      "Transaksi akan tetap diproses menggunakan sandbox endpoint."
     )
   }
 }
